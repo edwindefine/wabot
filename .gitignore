@@ -1,0 +1,15 @@
+# Dependency directories
+node_modules
+
+# Optional npm cache directories
+.npm
+
+# lock-files
+package-lock.json
+
+# sessions file
+auth_info.json
+auth_info1.json
+
+# test file
+test.js
