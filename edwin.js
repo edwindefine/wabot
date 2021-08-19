@@ -20,6 +20,11 @@ const app = express()
 const port = process.env.PORT || 8080;
 app.listen(port)
 
+var http = require("http");
+setInterval(function() {
+    http.get("http://therampage.herokuapp.com");
+}, 200000);
+
 
 /***************** UTILS *****************/
 const { 
