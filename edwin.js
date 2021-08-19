@@ -13,8 +13,6 @@ const moment = require("moment-timezone")
 const got = require('got')
 const hx = require('hxz-api');
 const speed = require('performance-now')
-const { blue, yellow } = require('chalk')
-const { send } = require('process');
 const qrcode = require("qrcode-terminal")
 
 

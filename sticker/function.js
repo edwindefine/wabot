@@ -1,7 +1,6 @@
 const fs = require('fs')
 const ffmpeg = require('fluent-ffmpeg')
 const { exec, spawn } = require("child_process");
-const { resolve } = require('path/posix');
 
 const createExif = (pack, author) => {
     const code = [0x00,0x00,0x16,0x00,0x00,0x00]
