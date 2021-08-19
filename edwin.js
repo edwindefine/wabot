@@ -15,6 +15,11 @@ const hx = require('hxz-api');
 const speed = require('performance-now')
 const qrcode = require("qrcode-terminal")
 
+const express = require('express')
+const app = express()
+const port = process.env.PORT || 8080;
+app.listen(port)
+
 
 /***************** UTILS *****************/
 const { 
