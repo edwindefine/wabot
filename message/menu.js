@@ -19,19 +19,23 @@ const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.
 *╭─❒ OWNER*
 *│*⬡ ${prefix}public
 *│*⬡ ${prefix}self
+*│*⬡ ${prefix}antidel *aktif/nonaktif*
 *│*⬡ ${prefix}asc (add sticker command)
 *│*⬡ ${prefix}rsc (remove sticker command)
 *│*⬡ ${prefix}getId
 *│*⬡ ${prefix}bugGc
 *│*⬡ ${prefix}saveImg *name*
-*│*⬡ ${prefix}imgThumb
 *│*
-*├❒ STICKER*
-*│*⬡ ${prefix}stk
-*│*⬡ ${prefix}swm
-*│*⬡ ${prefix}take
-*│*⬡ ${prefix}toimg
-*│*⬡ ${prefix}attp
+*├❒ GROUP MENU*
+*│*⬡ ${prefix}antilik *aktif/nonaktif*
+*│*⬡ ${prefix}add *nomor*
+*│*⬡ ${prefix}kick *mention*
+*│*⬡ ${prefix}promote *mention*
+*│*⬡ ${prefix}demote *mention*
+*│*⬡ ${prefix}hidetag *teks*
+*│*⬡ ${prefix}stag
+*│*⬡ ${prefix}gpic *tag*
+*│*⬡ ${prefix}linkgroup
 *│*
 *├❒ FAKE TEST*
 *│*⬡ ${prefix}freply *query*
@@ -39,15 +43,20 @@ const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.
 *│*⬡ ${prefix}fakeInvite
 *│*⬡ ${prefix}fakeLocation
 *│*
+*├❒ STICKER*
+*│*⬡ ${prefix}sticker
+*│*⬡ ${prefix}swm *pack | author*
+*│*⬡ ${prefix}take *pack | author*
+*│*⬡ ${prefix}toimg
+*│*⬡ ${prefix}attp
+*│*
 *├❒ ANIME*
 *│*⬡ ${prefix}wallanime
 *│*
 *├❒ MORE*
 *│*⬡ ${prefix}lmp (list message processed)
 *│*⬡ ${prefix}customPtt *query*
-*│*⬡ ${prefix}hidetag *teks*
-*│*⬡ ${prefix}gpic *tag*
-*│*⬡ ${prefix}stag
+*│*⬡ ${prefix}imgThumb
 *└─────────────────*
 
 `
