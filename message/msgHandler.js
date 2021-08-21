@@ -11,6 +11,8 @@ const imageToBase64 = require('image-to-base64')
 const { exec, spawn } = require("child_process");
 const moment = require("moment-timezone")
 const got = require('got')
+const axios = require('axios')
+const request = require('request');
 const hx = require('hxz-api');
 const speed = require('performance-now')
 
@@ -31,8 +33,6 @@ const {
     product 
 } = MessageType
 const {
-    fReplyCmd, 
-    fakeReply, 
     fMsg, 
     fVn, 
     fImage, 
@@ -50,21 +50,23 @@ const {
 const {createExif, execSticker, execWebp} = require('../sticker/function')
 const {getBuffer, start, info, success, close, getGroupAdmins, getGroupMembersId} = require('../lib/function')
 const {color, bgColor, hexColor} = require('../lib/color')
-const {pttCmd, pttCustom} = require('../lib/ptt');
 const { menu } = require('../message/menu');
+const {addResponse, checkResponse, deleteResponse} = require('../lib/response');
+const { yta, ytv, igdl, upload, formatDate } = require('../lib/ytdl')
 
 
 /******** JSON AND ASSETS ********/
-const {ownerNumber, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
+const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
 let boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
-let stickerCommand = JSON.parse(fs.readFileSync('./sticker/filesha256.json'))
+let stickerCommand = JSON.parse(fs.readFileSync('./sticker/command.json'))
 let banchat = JSON.parse(fs.readFileSync('./database/banchat.json'))
 let antiLink = JSON.parse(fs.readFileSync('./database/antilink.json'))
 let antiVirtex = JSON.parse(fs.readFileSync('./database/antivirtex.json'))
+let responseDb = JSON.parse(fs.readFileSync('./database/response.json'))
 
 let imagePreview = fs.readFileSync('./assets/image/cecan.jpg')
 
-moment.tz.setDefault("Asia/Jakarta").locale("id");
+moment.tz.setDefault("Asia/Makassar").locale("id");
 
 module.exports = async (chatUpdate, client) => {
     if (!chatUpdate.hasNewMessage) return
@@ -122,6 +124,7 @@ module.exports = async (chatUpdate, client) => {
     const isMedia = (type === 'imageMessage' || type === 'videoMessage')
     const isQuotedImage = type === 'extendedTextMessage' && content.includes('imageMessage')
     const isQuotedVideo = type === 'extendedTextMessage' && content.includes('videoMessage')
+    const isQuotedAudio = type === 'extendedTextMessage' && content.includes('audioMessage')
     const isQuotedSticker = type === 'extendedTextMessage' && content.includes('stickerMessage')
     
     /******************** END VALIDATOR ********************/
@@ -141,6 +144,31 @@ module.exports = async (chatUpdate, client) => {
     const reply = (teks) => {client.sendMessage(from, teks, text, {quoted:msg})}
     const reply2 = (teks) => {client.sendMessage(from, teks, text, {quoted: msg, thumbnail: fs.readFileSync(`./assets/image/karma_akabane_mini.jpg`)})}//terlihat image saat reply
     const fReply = (teks) => {client.sendMessage(from, teks, text, {quoted:fMsg(2, 'Bot Verified'), contextInfo:{mentionedJid:sender}})}
+
+    const sendMediaURL = async(to, url, teks="", mids=[]) =>{
+        if(mids.length > 0) teks = normalizeMention(to, teks, mids)
+        const fn = Date.now() / 10000;
+        const filename = fn.toString()
+        let mime = ""
+        function download(uri, filename, callback) {
+            request.head(uri, function (err, res, body) {
+                mime = res.headers['content-type']
+                request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
+            });
+        };
+        download(url, filename, async function () {
+            console.log('done');
+            let media = fs.readFileSync(filename)
+            let type = mime.split("/")[0]+"Message"
+            if(mime === "image/gif"){
+                type = MessageType.video
+                mime = Mimetype.gif
+            }
+            if(mime.split("/")[0] === "audio") mime = Mimetype.mp4Audio
+            client.sendMessage(to, media, type, { quoted: msg, mimetype: mime, caption: teks,contextInfo: {"mentionedJid": mids}})
+            fs.unlinkSync(filename)
+        });
+    }   
 
     /*message option*/
     //sendEphemeral: true //agar pesan terhapus setelah 7 hari
@@ -173,6 +201,7 @@ module.exports = async (chatUpdate, client) => {
 
         return result
     }
+    
 
     /********** END FUNCTION **********/
     
@@ -180,8 +209,17 @@ module.exports = async (chatUpdate, client) => {
 
     /******************** COMMAND ********************/
 
-
     /****** Checker ******/
+    //Auto Response
+    if(!isGroup){//khusus untuk private chat
+        if(boolean.autoResponse){
+            for (let i = 0; i < responseDb.length ; i++) {
+                if (body.toLowerCase() === responseDb[i].pesan) {
+                    client.sendMessage(from, responseDb[i].balasan, text, {quoted: msg})
+                }
+            }
+        }
+    }
     //antilink
     if (body.includes("https://chat.whatsapp.com/")) {
         if (!isGroup) return
@@ -251,39 +289,6 @@ module.exports = async (chatUpdate, client) => {
             if(isCmd && !isGroup) console.log(color('[CMD]'), color(moment(msg.messageTimestamp * 1000).format('DD/MM/YYYY HH:mm:ss'), 'yellow'), color(`${command} [${args.length}]`), 'from', color(pushname), hexColor('Private chat', '#34ebc6'))
             if(isCmd && isGroup) console.log(color('[CMD]'), color(moment(msg.messageTimestamp * 1000).format('DD/MM/YYYY HH:mm:ss'), 'yellow'), color(`${command} [${args.length}]`), 'from', color(pushname), 'in', color(groupName, 'blue'))
         }
-    }
-
-    //add sticker command
-    if(command === 'asc'){
-        if(!isOwner) return
-        if(!isQuotedSticker) return reply('Stickernya?')
-        if(!q) return reply('Masukan value command untuk sticker!')
-        for(let i = 0; i<stickerCommand.length; i++){
-            if(msg.message.extendedTextMessage.contextInfo.quotedMessage.stickerMessage.fileSha256.toString() == stickerCommand[i].key){
-                return reply('Sticker tersebut telah terisi command!')
-            }
-        }
-        const buffer = msg.message.extendedTextMessage.contextInfo.quotedMessage.stickerMessage.fileSha256.toString()
-        const command = q
-        stickerCommand.push({key:buffer,value:command})
-        fs.writeFileSync('./sticker/filesha256.json', JSON.stringify(stickerCommand), (err) => { if(err) throw err })
-        stickerCommand = JSON.parse(fs.readFileSync('./sticker/filesha256.json'))
-        fReply('Sticker Command Ditambahkan✔️')
-    }
-    //remove sticker command
-    if(command === 'rsc'){
-        if(!isOwner) return
-        if(!q) return reply('Masukan command sticker yang mau dihapus!')
-        for(let i = 0; i<stickerCommand.length; i++){
-            if(q.toLowerCase() == stickerCommand[i].value.toLowerCase()){
-                let i2 = i===0?1:i
-                stickerCommand.splice(i, i2)
-                fs.writeFileSync('./sticker/filesha256.json', JSON.stringify(stickerCommand), (err) => { if(err) throw err })
-                stickerCommand = JSON.parse(fs.readFileSync('./sticker/filesha256.json'))
-                return fReply('Berhasil menghapus command✔️')
-            }
-        }
-        reply('❌Tidak bisa menemukan command sticker tersebut')
     }
 
     
@@ -438,7 +443,7 @@ Owner BOT:
             break
         case 'getid':{
             if(!isOwner) return
-            await client.sendMessage('6285829271476@s.whatsapp.net', groupName ? groupName : pushname+'\n'+from, text)
+            await client.sendMessage('6285933091617@s.whatsapp.net', groupName ? groupName : pushname+'\n'+from, text)
             cmdSuccess('Group id obtained')
         }
             break
@@ -465,19 +470,111 @@ Owner BOT:
         }
             break
         case 'antidel':{
-            if(!isGroupAdmins) return
+            if(!isOwner) return
             if(!q) return reply('pilih aktif/nonaktif')
             let antidel = boolean.antidel
-            if(q.toLowerCase() === 'aktif' || q.toLowerCase() === 'true' && antidel === false) {
+            if(q.toLowerCase() === 'aktif' || q.toLowerCase() === 'true') {
+                if(antidel === true) return reply('sudah aktif!')
                 boolean.antidel = true
                 fs.writeFileSync('./database/boolean.json', JSON.stringify(boolean))
                 boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
                 fReply(`「 *ANTIDEL AKTIF* 」`)
-            } else if(q.toLowerCase() === 'aktif' || q.toLowerCase() === 'true' && antidel === true)
+            } else if(q.toLowerCase() === 'nonaktif' || q.toLowerCase() === 'false'){
+                if(antidel === false) return reply('beluk aktif!')
                 boolean.antidel = false
                 fs.writeFileSync('./database/boolean.json', JSON.stringify(boolean))
                 boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
                 fReply(`「 *ANTIDEL NONAKTIF* 」`)
+            } else{
+                reply('pilih *aktif/nonaktif* saja brother')
+            }
+        }
+            break
+        case 'autoresponse':{
+            if(!isOwner) return
+            if(!q) return reply('pilih aktif/nonaktif')
+            let autoResponse = boolean.autoResponse
+            if(q.toLowerCase() === 'aktif' || q.toLowerCase() === 'true') {
+                if(autoResponse === true) return reply('sudah aktif!')
+                boolean.autoResponse = true
+                fs.writeFileSync('./database/boolean.json', JSON.stringify(boolean))
+                boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
+                fReply(`「 *AUTORESPONSE AKTIF* 」`)
+            } else if(q.toLowerCase() === 'nonaktif' || q.toLowerCase() === 'false'){
+                if(autoResponse === false) return reply('belum aktif!')
+                boolean.autoResponse = false
+                fs.writeFileSync('./database/boolean.json', JSON.stringify(boolean))
+                boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
+                fReply(`「 *AUTORESPONSE NONAKTIF* 」`)
+            } else{
+                reply('pilih *aktif/nonaktif* saja brother')
+            }
+        }
+            break
+        case 'addcmd':{
+            if(!isOwner) return
+            if(!isQuotedSticker) return reply('Stickernya?')
+            if(!q) return reply('Masukan value command untuk sticker!')
+            for(let i = 0; i<stickerCommand.length; i++){
+                if(msg.message.extendedTextMessage.contextInfo.quotedMessage.stickerMessage.fileSha256.toString() == stickerCommand[i].key){
+                    return reply('Sticker tersebut telah terisi command!')
+                }
+            }
+            const buffer = msg.message.extendedTextMessage.contextInfo.quotedMessage.stickerMessage.fileSha256.toString()
+            const command = q
+            stickerCommand.push({key:buffer,value:command})
+            fs.writeFileSync('./sticker/command.json', JSON.stringify(stickerCommand), (err) => { if(err) throw err })
+            stickerCommand = JSON.parse(fs.readFileSync('./sticker/command.json'))
+            fReply('Sticker Command Ditambahkan✔️')
+        }
+            break
+        case 'removecmd':{
+            if(!isOwner) return
+            if(!q) return reply('Masukan command sticker yang mau dihapus!')
+            for(let i = 0; i<stickerCommand.length; i++){
+                if(q.toLowerCase() == stickerCommand[i].value.toLowerCase()){
+                    let i2 = i===0?1:i
+                    stickerCommand.splice(i, i2)
+                    fs.writeFileSync('./sticker/command.json', JSON.stringify(stickerCommand), (err) => { if(err) throw err })
+                    stickerCommand = JSON.parse(fs.readFileSync('./sticker/command.json'))
+                    return fReply('Berhasil menghapus command✔️')
+                }
+            }
+            reply('❌Tidak bisa menemukan command sticker tersebut')
+        }
+            break
+        case 'addresponse':{
+            if (!isOwner) return
+            if (!q) return reply(`Masukan key dan responsenya\n\nContoh : ${prefix}addrespon *hai|halo*`)
+            if (!q.includes('|')) return reply(`Masukan key dan responsenya\n\nContoh : ${prefix}addrespon *hai|halo*`)
+            let input = q.split("|")
+            if (checkResponse(input[0], responseDb) === true) return reply(`Response tersebut sudah ada`)
+            addResponse(input[0], input[1], sender, responseDb) 
+            fReply(`Key : ${input[0]}\nRespon : ${input[1]}\n\nRespon berhasil di set✔️`)
+        }
+            break
+        case 'delresponse':{
+            if (!isOwner) return
+            if (!q) return reply(`Masukan keynya\n\nContoh : ${prefix}delrespon *hai*`)
+            if (!checkResponse(q, responseDb)) return reply(`Key tersebut tidak ada di database`)
+            deleteResponse(q, responseDb)
+            fReply(`Berhasil menghapus respon dengan key ${q}✔️`)
+        }
+            break
+        case 'listresponse':{
+            let txt = ``
+            for (let i = 0; i < responseDb.length; i++){
+                txt += `❏ Key : ${responseDb[i].pesan}\n`
+            }
+            reply(`List Response Bot : \n\n${txt}\n*Total : ${responseDb.length}*`)
+        }
+            break
+        case 'addvn':{
+            if(!isOwner) return
+            if(!q) return reply('Masukan nama untuk custom vn nya!')
+            const encmedia = isQuotedAudio ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
+            await client.downloadAndSaveMediaMessage(encmedia, `./assets/customvn/${q}`)
+            fReply('Custom Vn Disimpan✔️')
         }
             break
         case 'saveimg':{
@@ -500,8 +597,7 @@ Owner BOT:
 /******** Group ********/
         case 'antilink':{
             if (!isGroup) return reply('Command kusus group!')
-            if (!isGroupAdmins) return reply('Hanya untuk admin!')
-            if (!isBotGroupAdmins) return reply('Jadiin Bot admin dulu!')
+            if(!isGroupAdmins && !isOwner) return reply('Hanya untuk admin!')
             if (!q) return reply(`untuk menggunakan command ini ketik :\n${prefix}antilink aktif/nonaktif`)
             if (q.toLowerCase() === 'aktif') {
                 if (isAntiLink) return reply('Sudah Aktif Kak!')
@@ -521,8 +617,7 @@ Owner BOT:
             break
         case 'antivirtex':{
             if (!isGroup) return reply('Command kusus group!')
-            if (!isGroupAdmins) return reply('Hanya untuk admin!')
-            if (!isBotGroupAdmins) return reply('Jadiin Bot admin dulu!')
+            if(!isGroupAdmins && !isOwner) return reply('Hanya untuk admin!')
             if (!q) return reply(`untuk menggunakan command ini ketik :\n${prefix}antilink aktif/nonaktif`)
             if (q.toLowerCase() === 'aktif') {
             if (isAntiVirtex) return reply('Sudah Aktif')
@@ -547,8 +642,7 @@ Owner BOT:
             if (!q) return reply(`Nomor yang mau di add?`)
             try {
                 let nomor = `${convertNumber(q)}@s.whatsapp.net`
-                client.groupAdd(from, [nomor])
-                    .catch(reply('Gagal menambahkan nomor, Pastikan nomornya sudah benar!'))
+                await client.groupAdd(from, [nomor])
             } catch (e) {
                 console.log('Error :', e)
                 reply('Gagal menambahkan nomor, mungkin karena di private')
@@ -560,7 +654,7 @@ Owner BOT:
             if (!isGroupAdmins) return reply('Hanya untuk admin!')
             if (!isBotGroupAdmins) return reply('Jadiin Bot admin dulu!')
             if (msg.message.extendedTextMessage === null || msg.message.extendedTextMessage === undefined) return reply('Mention member yang mau dikick!');
-            if (msg.message.extendedTextMessage.contextInfo.participant === undefined) {
+            if (!msg.message.extendedTextMessage.contextInfo.participant) {
                 const target = msg.message.extendedTextMessage.contextInfo.mentionedJid
                 if (target.length > 1) {
                     let memberId = []
@@ -568,7 +662,9 @@ Owner BOT:
                         memberId.push(id)
                     }
                     client.groupRemove(from, memberId)
-                } else client.groupRemove(from, [target[0]])
+                } else {
+                    client.groupRemove(from, [target[0]])
+                }
             } else {
                 const target = msg.message.extendedTextMessage.contextInfo.participant
                 client.groupRemove(from, [target])
@@ -582,7 +678,7 @@ Owner BOT:
             if (!isGroupAdmins) return reply('Hanya untuk admin!')
             if (!isBotGroupAdmins) return reply('Jadiin Bot admin dulu!')
             if (msg.message.extendedTextMessage === null || msg.message.extendedTextMessage === undefined) return reply('Mention member yang mau promote!');
-            if (msg.message.extendedTextMessage.contextInfo.participant === undefined) {
+            if (!msg.message.extendedTextMessage.contextInfo.participant) {
                 const target = msg.message.extendedTextMessage.contextInfo.mentionedJid
                 if (target.length > 1) {
                     let memberId = []
@@ -604,7 +700,7 @@ Owner BOT:
             if (!isGroupAdmins) return reply('Hanya untuk admin!')
             if (!isBotGroupAdmins) return reply('Jadiin Bot admin dulu!')
             if (msg.message.extendedTextMessage === null || msg.message.extendedTextMessage === undefined) return reply('Mention member yang mau demote!');
-            if (msg.message.extendedTextMessage.contextInfo.participant === undefined) {
+            if (!msg.message.extendedTextMessage.contextInfo.participant) {
                 const target = msg.message.extendedTextMessage.contextInfo.mentionedJid
                 if (target.length > 1) {
                     let memberId = []
@@ -646,7 +742,10 @@ Owner BOT:
         }
             break
         case 'gpic':{
-            let target = !isGroup ? from : type === 'conversation' ? client.user.jid : type === 'extendedTextMessage' ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : ''
+            if (msg.message.extendedTextMessage === null || msg.message.extendedTextMessage === undefined) return reply('Mention member yang mau diambil ppnya!');
+            let target = ''
+            if (!msg.message.extendedTextMessage.contextInfo.participant) target = msg.message.extendedTextMessage.contextInfo.mentionedJid[0]
+            else target = msg.message.extendedTextMessage.contextInfo.participant
             let pic = '';
             try{ pic = await client.getProfilePicture(target) }
             catch{ pic = mediaUrl.no_profile }
@@ -658,12 +757,30 @@ Owner BOT:
 
 /********* Fake Test *********/
         case 'freply':{
-            const fakeReplyy = await fakeReply(q)
-            if(fakeReplyy !== false) {
-                !args[1] ? reply('Mau fake reply yang mana?') : client.sendMessage(from, 'You Know?', extendedText, { quoted : fakeReplyy(0) })
-            } else reply(`Yang tersedia cuma : \n\n${fReplyCmd.toString()}`)
-            //'msg, vn, image, video, toko, troli, gif, location, doc, invite, stk'
-            cmdSuccess('freply processed')
+            if(!q) reply('Mau fake reply yang mana?')
+            const cmd = ['msg', 'vn', 'image', 'video', 'toko', 'troli', 'gif', 'location', 'livelocation', 'doc', 'kontak', 'invite', 'stk']
+            const func = [fMsg, fVn, fImage, fVideo, fToko, fTroli, fGif, fLoc, fLiveLoc, fDoc, fKontak, fInvite, fSticker]
+            
+            for(let i = 0; i<cmd.length; i++){
+                if(q.toLowerCase() === cmd[i]){
+                    client.sendMessage(from, 'You Know?', extendedText, { quoted : func[i](0) })
+                    return cmdSuccess('Freply processed')
+                }
+            }
+            let listFreply = ''
+            cmd.forEach((item, index) => {
+                listFreply += index+1+'.'+item+'\n'; 
+            });
+            reply(`Yang tersedia cuma : \n\n${listFreply}\n*Total : ${cmd.length}*`)
+        }
+            break
+        case 'listfreply':{
+            const cmd = ['msg', 'vn', 'image', 'video', 'toko', 'troli', 'gif', 'location', 'livelocation', 'doc', 'kontak', 'invite', 'stk']
+            let listFreply = ''
+            cmd.forEach((item, index) => {
+                listFreply += index+1+'.'+item+'\n'; 
+            });
+            reply(`List Freply Test : \n\n${listFreply}\n*Total : ${cmd.length}*`)
         }
             break
         case 'fakeurl':{
@@ -701,34 +818,7 @@ Owner BOT:
         }
             break
         case 'fakeproduct':{
-            client.sendMessage(from, {
-                product: {
-                    // productImage: ImageMessage {
-                    // interactiveAnnotations: [],
-                    // scanLengths: [],
-                    // url: 'https://mmg.whatsapp.net/d/f/Ag5eTW6anoK4SUlXLkFrxr3tyKUkPbe2Dko0_xBMCrxO.enc',
-                    // mimetype: 'image/jpeg',
-                    // fileSha256: <Buffer 93 41 44 5b aa 5a c2 1a 45 ab 17 4a 57 29 a0 b1 c5 06 5e a1 e2 35 6d 88 d2 35 d6 da 57 f2 15 30>,
-                    // fileLength: Long { low: 117943, high: 0, unsigned: true },
-                    // height: 1134,
-                    // width: 1080,
-                    // mediaKey: <Buffer 32 9e db 34 09 60 40 b8 95 9f 01 df 9b da bb d4 71 e6 55 78 6c 0f d0 30 b2 c3 ed a5 9f 48 19 0d>,
-                    // fileEncSha256: <Buffer 87 22 64 9c ae e5 a2 af 0d a2 41 2b 4f e1 08 8f 32 04 66 08 63 dd 52 55 6d d1 b2 b8 54 99 cb d1>,
-                    // directPath: '/v/t62.7118-24/31601662_136245365332000_3413680619294351847_n.enc?ccb=11-4&oh=87a597698ebd843e421c4ccf61fbcfb7&oe=613FF013&_nc_hot=1629114041',
-                    // mediaKeyTimestamp: Long { low: 1629105834, high: 0, unsigned: false },
-                    // jpegThumbnail: <Buffer ff d8 ff e0 00 10 4a 46 49 46 00 01 01 00 00 01 00 01 00 00 ff db 00 84 00 1b 1b 1b 1b 1c 1b 1e 21 21 1e 2a 2d 28 2d 2a 3d 38 33 33 38 3d 5d 42 47 42 ... 779 more bytes>
-                    // },
-                    productImage: fs.readFileSync('./assets/image/karma_akabane_wm.jpg'),
-                    productId: '4257516651004968',
-                    title: 'HELLO',
-                    description: 'Halo bang',
-                    currencyCode: 'IDR',
-                    productImageCount: 1
-                },
-                businessOwnerJid: '6285829271476@s.whatsapp.net',
-                contextInfo: {}
-            }, product)
-            cmdSuccess('fake Product Processed')
+            // cmdSuccess('fake Product Processed')
         }
             break
 
@@ -795,23 +885,6 @@ Owner BOT:
                 })
         }
             break
-        case 'toimg':{
-            if (!isQuotedSticker) return reply('reply stickernya om')
-            let encmedia = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
-            let media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/toimg')
-            if (msg.message.extendedTextMessage.contextInfo.quotedMessage.stickerMessage.isAnimated === true){
-                reply(`Blum support sticker gif :/`)
-            } else {
-                let imgName = './sticker/image.png'
-                exec(`ffmpeg -i ${media} ${imgName}`, (err) => {
-                    fs.unlinkSync(media)
-                    if (err) return reply('Gagal :V')
-                    client.sendMessage(from, fs.readFileSync(imgName), image, {quoted: msg, caption: '.'})
-                    fs.unlinkSync(imgName)
-                })
-            }
-        }
-            break
         case 'attp':{
             if (args.length < 2) return reply(`Kirim perintah *${prefix}attp* teks`)
             let attp = await getBuffer(`https://api.xteam.xyz/attp?file&text=${encodeURIComponent(q)}`)
@@ -832,6 +905,24 @@ Owner BOT:
                 })
         }
             break
+        case 'toimg':{
+            if (!isQuotedSticker) return reply('reply stickernya om')
+            let encmedia = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
+            let media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/toimg')
+            if (msg.message.extendedTextMessage.contextInfo.quotedMessage.stickerMessage.isAnimated === true){
+                reply(`Blum support sticker gif :/`)
+            } else {
+                let imgName = './sticker/image.png'
+                exec(`ffmpeg -i ${media} ${imgName}`, (err) => {
+                    fs.unlinkSync(media)
+                    if (err) return reply('Gagal :V')
+                    client.sendMessage(from, fs.readFileSync(imgName), image, {quoted: msg, caption: '.'})
+                    fs.unlinkSync(imgName)
+                })
+            }
+        }
+            break
+        
 
 /********* Anime *********/ 
         case 'wallanime':{
@@ -846,16 +937,35 @@ Owner BOT:
         }
             break   
 
-/********* More *********/
-        case 'customptt':{
-            const pttCustomm = await pttCustom(q)
-            if(pttCustomm !== false) {
-                !args[1] ? reply('Mau custom ptt yang mana?') : client.sendMessage(from, { url: pttCustomm }, audio, { mimetype: Mimetype.mp4Audio, ptt : true })
-            } else reply(`Yang tersedia cuma : \n\n${pttCmd.toString()}`)
-            //'ngen, haa, mou, ara, kana, mgl, trig, mask, rude, 24kgoldn, yamete, shop, campion, beggin, lemont, mencarialasan'
-            cmdSuccess('custom ptt processed')
+/********* Audio Processed *********/
+        case 'listvn':{
+            const customVn = fs.readdirSync('./assets/customvn')
+            let listVn = ''
+            customVn.forEach((item, index) => {
+                listVn += index+1+'.'+item.split('.')[0]+'\n'; 
+            });
+            reply(`List Custom Vn : \n\n${listVn}\n*Total : ${customVn.length}*`)
         }
             break
+        case 'customvn':{
+            if(!q) reply('Mau custom vn yang mana?')
+            const customVn = fs.readdirSync('./assets/customvn')
+            for(let i = 0; i<customVn.length; i++){
+                if(q.toLowerCase() === customVn[i].split(".")[0].toLowerCase()){
+                    client.sendMessage(from, { url: `assets/customvn/${customVn[i]}` }, audio, { mimetype: Mimetype.mp4Audio, ptt : true })
+                    return cmdSuccess('custom vn processed')
+                }
+            }
+            let listVn = ''
+            customVn.forEach((item, index) => {
+                listVn += index+1+'.'+item.split('.')[0]+'\n'; 
+            });
+            reply(`Yang tersedia cuma : \n\n${listVn}\n*Total : ${customVn.length}*`)
+            cmdSuccess('Custom vn processed')
+        }
+            break
+
+/********* Converter *********/
         case 'imgthumb':{
             if(type !== 'imageMessage' && !isQuotedImage) return reply('image nya?')
             const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg                
@@ -868,10 +978,40 @@ Owner BOT:
             cmdSuccess(`imgThumb Processed`)
         }
             break
-            
 
-/********** Lainnya **********/
-        
+
+/********* Downloader *********/
+        case 'ytmp4':{
+            if (!q) return reply(`Kirim perintah *${prefix}ytmp4 https://youtu.be/MVIr6DX9HMo*`)
+            let isLink = q.match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
+            if (!isLink) return reply('linknya salah/error!')
+            try {
+                reply('⏳Tunggu...')
+                ytv(args[0])
+                    .then((res) => {
+                        const { dl_link, thumb, title, filesizeF, filesize } = res
+                        axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
+                            .then((a) => {
+                                if (Number(filesize) >= 40000) return sendMediaURL(from, thumb, `*YTMP 4!*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam bentuk link_`)
+                                const captionsYtmp4 = `*Data Berhasil Didapatkan!*\n\n*Title* : ${title}\n*Ext* : MP4\n*Size* : ${filesizeF}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
+                                sendMediaURL(from, thumb, captionsYtmp4)
+                                sendMediaURL(from, dl_link).catch(() => reply('terjadi kesalahan/error!'))
+                            })		
+                    })
+            } catch (err) {
+                reply('terjadi kesalahan/error!')
+            }
+        }
+            break
+/********* More *********/
+        case 'listcmd':{
+            let listCmd = ''
+            stickerCommand.forEach((item, index) => {
+                listCmd += index+1+'.'+item.value+'\n'; 
+            });
+            reply(`List Sticker Command : \n\n${listCmd}\n*Total : ${stickerCommand.length}*`)
+        }
+            break
         
 
     }

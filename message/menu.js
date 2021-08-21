@@ -20,8 +20,13 @@ const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.
 *│*⬡ ${prefix}public
 *│*⬡ ${prefix}self
 *│*⬡ ${prefix}antidel *aktif/nonaktif*
-*│*⬡ ${prefix}asc (add sticker command)
-*│*⬡ ${prefix}rsc (remove sticker command)
+*│*⬡ ${prefix}autoResponse *aktif/nonaktif*
+*│*⬡ ${prefix}addCmd *command*
+*│*⬡ ${prefix}removeCmd *command*
+*│*⬡ ${prefix}addVn *name*
+*│*⬡ ${prefix}addResponse *key|response*
+*│*⬡ ${prefix}delResponse *key*
+*│*⬡ ${prefix}listResponse
 *│*⬡ ${prefix}getId
 *│*⬡ ${prefix}bugGc
 *│*⬡ ${prefix}saveImg *name*
@@ -35,10 +40,11 @@ const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.
 *│*⬡ ${prefix}hidetag *teks*
 *│*⬡ ${prefix}stag
 *│*⬡ ${prefix}gpic *tag*
-*│*⬡ ${prefix}linkgroup
+*│*⬡ ${prefix}linkGroup
 *│*
 *├❒ FAKE TEST*
 *│*⬡ ${prefix}freply *query*
+*│*⬡ ${prefix}listFreply
 *│*⬡ ${prefix}fakeUrl
 *│*⬡ ${prefix}fakeInvite
 *│*⬡ ${prefix}fakeLocation
@@ -51,12 +57,21 @@ const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.
 *│*⬡ ${prefix}attp
 *│*
 *├❒ ANIME*
-*│*⬡ ${prefix}wallanime
+*│*⬡ ${prefix}wallAnime
+*│*
+*├❒ AUDIO PROCESSED*
+*│*⬡ ${prefix}customVn *query*
+*│*⬡ ${prefix}listVn
+*│*
+*├❒ CONVERTER*
+*│*⬡ ${prefix}imgThumb
+*│*
+*├❒ DOWNLOADER*
+*│*⬡ ${prefix}ytmp4 *link*
 *│*
 *├❒ MORE*
 *│*⬡ ${prefix}lmp (list message processed)
-*│*⬡ ${prefix}customPtt *query*
-*│*⬡ ${prefix}imgThumb
+*│*⬡ ${prefix}listCmd
 *└─────────────────*
 
 `

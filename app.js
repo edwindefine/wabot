@@ -49,7 +49,7 @@ const {
 const msgHandler = require('./message/msgHandler');
 const {getBuffer, start, info, success, close, getGroupAdmins, getGroupMembersId} = require('./lib/function')
 const {color, bgColor, hexColor} = require('./lib/color')
-const {ownerNumber, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
+const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
 let welcomeGroup = JSON.parse(fs.readFileSync('./database/welcomeGroup.json'))
 let boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
 
@@ -65,7 +65,6 @@ async function connectToWhatsApp () {
     client.on('qr', qr => {
         qrcode.generate(qr, { small: true })
         console.log(color('(+)','white'),color('Whatsapp Bot','red'),color('(+)','white'),color(' SCAN CODENYA! ','aqua'),color('edwindefine','yellow'))
-        // console.log(color('(+)','white'),color('Edwin','red'),color('(+)','white'),color(' SCAN CODENYA!','aqua'),color(' You','white'),color('Tube :','red'),color('edwindefine','yellow'))
     }) 
     client.on('credentials-updated', () => {
         const authInfo = client.base64EncodedAuthInfo()

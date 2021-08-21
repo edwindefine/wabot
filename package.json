@@ -14,16 +14,21 @@
     "axios": "^0.21.1",
     "cfonts": "^2.9.3",
     "chalk": "^4.1.1",
+    "cheerio": "^1.0.0-rc.10",
     "child_process": "^1.0.2",
     "express": "^4.17.1",
+    "file-type": "^16.5.3",
     "fluent-ffmpeg": "^2.1.2",
     "got": "^11.8.2",
     "hxz-api": "^1.0.1",
     "image-to-base64": "^2.2.0",
+    "jsdom": "^17.0.0",
     "moment-timezone": "^0.5.33",
+    "node-fetch": "^2.6.1",
     "nodemon": "^2.0.12",
     "path": "^0.12.7",
     "performance-now": "^2.1.0",
+    "request": "^2.88.2",
     "spinnies": "^0.5.1"
   }
 }

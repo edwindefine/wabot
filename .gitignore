@@ -8,8 +8,8 @@ node_modules
 package-lock.json
 
 # sessions file
-#auth_info.json
-#auth_info1.json
+auth_info.json
+auth_info1.json
 
 # test file
 test.js
