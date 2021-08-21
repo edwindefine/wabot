@@ -13,6 +13,9 @@ const app = express()
 const port = process.env.PORT || 8080;
 app.listen(port)
 
+app.get('/', function (req, res) {
+  res.send('hello world')
+})
 /***************** UTILS *****************/
 const { 
     text,
