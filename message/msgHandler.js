@@ -328,7 +328,7 @@ module.exports = async (chatUpdate, client) => {
         const gambar = await client.prepareMessage(from, pp, image, {thumbnail: pp})
         const content = {
             imageMessage: gambar.message.imageMessage,
-            contentText: menu(pushname, userPrefix, dataBot.prefix === 'multi' ? 'MULTI-PREFIX' : dataBot.prefix, sender, timeWita, isPublic),
+            contentText: menu(pushname, dataBot.prefix === 'multi' ? '#' : dataBot.prefix, dataBot.prefix === 'multi' ? 'MULTI-PREFIX' : dataBot.prefix, sender, timeWita, isPublic),
             footerText: `Creator Bot Whatsapp\n© ${botName}`,
             buttons: [
                 {buttonId: 's&k', buttonText: {displayText: 'S&K'}, type: 1}
