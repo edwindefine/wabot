@@ -362,8 +362,8 @@ Owner BOT:
 
     }
     else if (userButtonResponse == 'contact creator') {
-        client.sendMessage(from, {displayName: 'Edwin', vcard: vCard}, contact, { quoted: msg })
-        fReply('Ini Creator Saya')
+        //client.sendMessage(from, {displayName: 'Edwin', vcard: vCard}, contact, { quoted: msg })
+        fReply('Nama creatornya *Edwin* tu aja.')
     }
     else if (userButtonResponse == 'speed run') {
         const timestamp = speed();
@@ -906,6 +906,7 @@ Owner BOT:
         case 'sticker':
         case 'stickers':
         case 's':{
+            return
             if(type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${userPrefix}sticker`)
             if ((type === 'videoMessage' && msg.message.videoMessage.seconds > 10 || isQuotedVideo && msg.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds > 10)) return reply('max durasi video 10 detik!')
             const encmedia = isQuotedVideo || isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
@@ -923,6 +924,7 @@ Owner BOT:
         }
             break
         case 'swm':{
+            return
             if(type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${userPrefix}sticker`)
             if ((type === 'videoMessage' && msg.message.videoMessage.seconds > 10 || isQuotedVideo && msg.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds > 10)) return reply('max durasi video 10 detik!')
             const encmedia = isQuotedVideo || isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
@@ -944,6 +946,7 @@ Owner BOT:
         }
             break
         case 'take':{
+            return
             if (!isQuotedSticker) return reply('reply stickernya om')
             const encmedia = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
             const media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/stk')
@@ -964,6 +967,7 @@ Owner BOT:
         }
             break
         case 'attp':{
+            return
             if (args.length < 2) return reply(`Kirim perintah *${userPrefix}attp* teks`)
             let attp = await getBuffer(`https://api.xteam.xyz/attp?file&text=${encodeURIComponent(q)}`)
             fs.writeFileSync('./sticker/attp.webp', attp)
@@ -984,6 +988,7 @@ Owner BOT:
         }
             break
         case 'toimg':{
+            return
             if (!isQuotedSticker) return reply('reply stickernya om')
             let encmedia = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
             let media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/toimg')
