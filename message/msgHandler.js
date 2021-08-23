@@ -807,13 +807,13 @@ Owner BOT:
             break
         case 'hidetag':{
             if (!isGroup) return reply('Command kusus group!')
-            if (!isGroupAdmins) return reply('Hanya untuk admin!')
+            if (!isGroupAdmins && !isOwner) return reply('Hanya untuk admin!')
             !q ? client.sendMessage(from, 'Hallo', extendedText, {contextInfo: {"mentionedJid": groupMembersId}}) : client.sendMessage(from, q, extendedText, {contextInfo: {"mentionedJid": groupMembersId}})
         }
             break
         case 'stag':{
             if (!isGroup) return reply('Command kusus group!')
-            if (!isGroupAdmins) return reply('Hanya untuk admin!')
+            if (!isGroupAdmins && !isOwner) return reply('Hanya untuk admin!')
             const sName = './sticker/sTag.webp'
             client.sendMessage(from, fs.readFileSync(sName), sticker, {contextInfo: {"mentionedJid": groupMembersId}})
         }
