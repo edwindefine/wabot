@@ -3,9 +3,11 @@ const {
     WAConnection, 
     MessageType, 
     Mimetype, 
-    WA_DEFAULT_EPHEMERAL
+    WA_DEFAULT_EPHEMERAL,
+    WA_MESSAGE_STUB_TYPES
 } = require('@adiwajshing/baileys')
 const fs = require('fs')
+const moment = require("moment-timezone")
 const qrcode = require("qrcode-terminal")
 //express for running in heroku
 const express = require('express')
@@ -52,10 +54,12 @@ const {
 const msgHandler = require('./message/msgHandler');
 const {getBuffer, start, info, success, close, getGroupAdmins, getGroupMembersId} = require('./lib/function')
 const {color, bgColor, hexColor} = require('./lib/color')
+const { count } = require('console')
 const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
-let welcomeGroup = JSON.parse(fs.readFileSync('./database/welcomeGroup.json'))
-let boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
+let welcomeGroup = JSON.parse(fs.readFileSync('./database/welcomegroup.json'))
+let dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
 
+//Whatsapp Bot by edwindefine
 
 // function
 async function connectToWhatsApp () {
@@ -63,7 +67,7 @@ async function connectToWhatsApp () {
     client.version =  [2, 2119, 6]
 	client.logger.level = 'warn'	 
 
-    const sessionData = './auth_info.json'
+    const sessionData = './session.json'
 
     client.on('qr', qr => {
         qrcode.generate(qr, { small: true })
@@ -114,6 +118,13 @@ async function connectToWhatsApp () {
             const gambar = await client.prepareMessage(groupId, userPp, image, {thumbnail: userPp})
 
 			if (partis.action == 'add') {
+
+                //kick virtekers
+                // let testnumber = '6281775141672@s.whatsapp.net'
+                let thenumber = '18609267944@s.whatsapp.net'
+                if(number === thenumber) return client.groupRemove('6285829271476-1625710100@g.us', thenumber)
+                //
+
                 const content = {
                     imageMessage: gambar.message.imageMessage,
                     contentText: `Hallo *@${number.split("@")[0]}*, selamat datang di group *${groupMetadata.subject}*`,
@@ -147,13 +158,9 @@ async function connectToWhatsApp () {
 		}
 
     })
-
-    client.on('chat-update', async (chatUpdate) => {
-        msgHandler(chatUpdate, client)
-    })
-
-    client.on('message-delete', async (msg) => {
-        let antidel = boolean.antidel
+    
+    client.on('message-delete', async (msg) => {//on message-delete masih rusak
+        let antidel = dataBot.antidel
         if (msg.key.remoteJid == 'status@broadcast') return
         if (!msg.key.fromMe && msg.key.fromMe) return
         if (antidel === false) return
@@ -167,8 +174,6 @@ async function connectToWhatsApp () {
             month: 'long',
             year: 'numeric'
         })
-        // let gmt = new Date(0).getTime() - new Date('1 Januari 2021').getTime()
-        // let weton = ['Pahing', 'Pon','Wage','Kliwon','Legi'][Math.floor(((date * 1) + gmt) / 84600000) % 5]
         const type = Object.keys(msg.message)[0]
         client.sendMessage(msg.key.remoteJid, `━━━━⬣  𝘼𝙉𝙏𝙄 𝘿𝙀𝙇𝙀𝙏𝙀  ⬣━━━━
             *Nama  : @${msg.participant.split("@")[0]}*
@@ -177,6 +182,17 @@ async function connectToWhatsApp () {
         ━━━━⬣  𝘼𝙉𝙏𝙄 𝘿𝙀𝙇𝙀𝙏𝙀  ⬣━━━━`, MessageType.text, {quoted: msg.message, contextInfo: {"mentionedJid": [msg.participant]}})
         client.copyNForward(msg.key.remoteJid, msg.message)
     })
+
+    client.on('chat-update', async (chatUpdate) => {  
+        // if(!chatUpdate.messages) return
+        // const msg = chatUpdate.messages.all()[0]
+        // const messageStubType = WA_MESSAGE_STUB_TYPES[msg.messageStubType] || 'MESSAGE'
+        // if(messageStubType === 'REVOKE') antiDeleteMsg(msg)
+        // else msgHandler(chatUpdate, client)
+        msgHandler(chatUpdate, client)
+    })
+
+
 }
 
 // run

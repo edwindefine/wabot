@@ -1,6 +1,7 @@
 const fs = require('fs')
 
 const miniThumbnail = fs.readFileSync('./assets/image/karma_akabane_mini.jpg')
+const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
 
 const keyType = [
     {
@@ -91,7 +92,7 @@ module.exports = {
             message: { 
                 documentMessage: {
                     mimetype: 'application/zip',
-                    title: 'edwindefine',
+                    title: ownerName,
                     fileLength: 1,
                     pageCount: 0,
                     fileName: teks
@@ -203,7 +204,7 @@ module.exports = {
                         "description": "Hehey This is an Product with very Cool Quality!",
                         "currencyCode": "IDR",
                         "priceAmount1000": "1000000000",
-                        "retailerId": "edwindefine",
+                        "retailerId": ownerName,
                         "productImageCount": 1
                     },
                     "businessOwnerJid": `0@s.whatsapp.net`
@@ -221,7 +222,7 @@ module.exports = {
                     thumbnail: image,
                     surface: 200, 
                     message: teks, 
-                    orderTitle: 'edwindefine', 
+                    orderTitle: ownerName, 
                     sellerJid: '0@s.whatsapp.net'
                 } 
             } 

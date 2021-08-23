@@ -2,7 +2,8 @@
 const { 
     WAConnection, 
     MessageType, 
-    Mimetype, 
+    Mimetype,
+    Presence, 
     WA_DEFAULT_EPHEMERAL
 } = require('@adiwajshing/baileys')
 const fs = require('fs')
@@ -56,8 +57,8 @@ const { yta, ytv, igdl, upload, formatDate } = require('../lib/ytdl')
 
 
 /******** JSON AND ASSETS ********/
-const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
-let boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
+const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
+let dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
 let stickerCommand = JSON.parse(fs.readFileSync('./sticker/command.json'))
 let banchat = JSON.parse(fs.readFileSync('./database/banchat.json'))
 let antiLink = JSON.parse(fs.readFileSync('./database/antilink.json'))
@@ -74,7 +75,7 @@ module.exports = async (chatUpdate, client) => {
     if (!msg.message) return
     if (msg.key && msg.key.remoteJid == 'status@broadcast') return
     msg.message = (Object.keys(msg.message)[0] === 'ephemeralMessage') ? msg.message.ephemeralMessage.message : msg.message
-    if(msg.status === 2) return
+    if(msg.status === 2) return //the reply of the bot
     
     // console.log(msg)//msg debugging
 
@@ -89,10 +90,10 @@ module.exports = async (chatUpdate, client) => {
     const args = body.split(" ")
     let q = body.slice(args[0].length+1)
     const pureCommand = args[0]
-    const prefix = '/'
-    // const prefix = /^[π×£€¥!#$^./\\©^]/.test(pureCommand) ? pureCommand.match(/^[π×£€¥!#$^./\\©^]/gi) : '-'
-    // const prefix = body && body.length>1 ? body[1].toUpperCase() : ''       
-    const isCmd = pureCommand ? pureCommand[0] == prefix : false
+    const thePrefix = dataBot.prefix !== 'multi' ? dataBot.prefix : /^[π×£€¥!#$^./\\©^]/.test(pureCommand) ? pureCommand.match(/^[π×£€¥!#$^./\\©^]/gi) : '-'
+    // const thePrefix = body && body.length>1 ? body[1].toUpperCase() : ''
+    const isCmd = pureCommand ? pureCommand[0] == thePrefix : false
+    const userPrefix = pureCommand[0]
     let command = pureCommand.slice(1, pureCommand.length).toLowerCase()
 
     
@@ -101,7 +102,7 @@ module.exports = async (chatUpdate, client) => {
     const isGroup = from.includes('@g.us')
     const sender = msg.key.fromMe ? client.user.jid : isGroup ? msg.participant : msg.key.remoteJid
     const isOwner = ownerNumber.includes(sender)
-    let isPublic = boolean.isPublic
+    let isPublic = dataBot.isPublic
 
     const timeWit = moment().tz('Asia/Jakarta').format('DD/MM HH:mm:ss')
     const timeWita = moment().tz('Asia/Makassar').format('DD/MM HH:mm:ss')
@@ -201,7 +202,10 @@ module.exports = async (chatUpdate, client) => {
 
         return result
     }
-    
+
+    const isUrl = (url) => {
+        return url.match(new RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%.+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%+.~#?&/=]*)/, 'gi'))
+    }
 
     /********** END FUNCTION **********/
     
@@ -212,7 +216,7 @@ module.exports = async (chatUpdate, client) => {
     /****** Checker ******/
     //Auto Response
     if(!isGroup){//khusus untuk private chat
-        if(boolean.autoResponse){
+        if(dataBot.autoResponse){
             for (let i = 0; i < responseDb.length ; i++) {
                 if (body.toLowerCase() === responseDb[i].pesan) {
                     client.sendMessage(from, responseDb[i].balasan, text, {quoted: msg})
@@ -244,6 +248,23 @@ module.exports = async (chatUpdate, client) => {
             .catch((e) => { reply(`Jadikan Bot Admin terlebih dahulu untuk menggunakan ANTIVIRTEX!`) })
     }
 
+    /*** SetPrefix Bot ***/
+    if(pureCommand.toLowerCase() === 'setprefix'){
+        if(!isOwner) return
+        if(!q) return reply('prefixnya?')
+        if(q === 'default' || q === 'multi'){
+            dataBot.prefix = 'multi'
+            fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
+            dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
+            fReply(`SetPrefix「 *MULTI-PREFIX* 」`)
+        } else {
+            if(q.length > 1) return reply('Prefix cuma bisa *1 huruf/angka*, atau bisa mengetik *multi* untuk menggunakan multi prefix!')
+            dataBot.prefix = q
+            fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
+            dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
+            fReply(`SetPrefix「 *${q}* 」`)
+        }
+    }
 
     // return if is !cmd and !public
     if (!isListResponseMessage && !isButtonsResponseMessage && !isOwner && !isPublic) return 
@@ -307,8 +328,8 @@ module.exports = async (chatUpdate, client) => {
         const gambar = await client.prepareMessage(from, pp, image, {thumbnail: pp})
         const content = {
             imageMessage: gambar.message.imageMessage,
-            contentText: menu(pushname, prefix, sender, timeWita, isPublic),
-            footerText: `Creator Bot Whatsapp\n© edwin Bot 𝐕1`,
+            contentText: menu(pushname, userPrefix, dataBot.prefix === 'multi' ? 'MULTI-PREFIX' : dataBot.prefix, sender, timeWita, isPublic),
+            footerText: `Creator Bot Whatsapp\n© ${botName}`,
             buttons: [
                 {buttonId: 's&k', buttonText: {displayText: 'S&K'}, type: 1}
             ],
@@ -371,7 +392,7 @@ Owner BOT:
             // }, thumbnail: fs.readFileSync(`./assets/image/karma_akabane_mini.jpg`)})
             client.sendMessage(from, fs.readFileSync('./assets/image/nagapixel smp.jpg'), image, {
                 thumbnail: fs.readFileSync('./assets/image/karma_akabane_wm.jpg'),
-                caption: 'makan semua ajg!'
+                caption: 'makan nih testo ajg!'
             })
         }
             break
@@ -392,7 +413,7 @@ Owner BOT:
             const content = {
                 imageMessage: gambar.message.imageMessage,
                 contentText: 'Active!',
-                footerText: `Creator Bot Whatsapp\n© edwin Bot 𝐕1`,
+                footerText: `Creator Bot Whatsapp\n© ${botName}`,
                 buttons: buttons,
                 headerType: 4
             }
@@ -443,7 +464,7 @@ Owner BOT:
             break
         case 'getid':{
             if(!isOwner) return
-            await client.sendMessage('6285933091617@s.whatsapp.net', groupName ? groupName : pushname+'\n'+from, text)
+            await client.sendMessage(botNumber, groupName ? `*${groupName}*\n\nId:\n${from}` : `*${pushname}*\n\nId:\n${from}`, text)
             cmdSuccess('Group id obtained')
         }
             break
@@ -451,39 +472,91 @@ Owner BOT:
 
 
 /******** Owner ********/
+        case 'broadcast':
+        case 'bc':{
+            client.updatePresence(from, Presence.composing)
+            if (!isOwner) return 
+            if (!q) return reply('Teksnya?')
+            let allChats = await client.chats.all()
+            if (isMedia && !msg.message.videoMessage || isQuotedImage) {
+                const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : msg
+                let buff = await client.downloadMediaMessage(encmedia)
+                for (let chat of allChats) {
+                    client.sendMessage(chat.jid, buff, image, {
+                        quoted: fTroli(2, 'Broadcast'), 
+                        contextInfo: { forwardingScore: 508, isForwarded: true}, 
+                        caption: `*《BROADCAST BOT》*\n\n${q}`
+                    })
+                }
+                reply(`Sukses mengirim Broadcast :\n\n${q}`)
+            } else if (isMedia && !msg.message.imageMessage && !msg.message.videoMessage.gifPlayback || isQuotedVideo && !msg.message.extendedTextMessage.contextInfo.videoMessage.gifPlayback) {
+                const encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(msg).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : msg
+                let buff = await client.downloadMediaMessage(encmedia)
+                for (let chat of allChats) {
+                    client.sendMessage(chat.jid, buff, video, { 
+                        quoted: fTroli(2, 'Broadcast'), 
+                        contextInfo: { forwardingScore: 508, isForwarded: true}, 
+                        caption: `*《BROADCAST BOT》*\n\n${q}`
+                    })
+                }
+                reply(`Sukses mengirim Broadcast :\n\n${q}`)
+            } else if (isMedia && !msg.message.imageMessage || isQuotedVideo) {
+                const encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(msg).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : msg
+                let buff = await client.downloadMediaMessage(encmedia)
+                for (let chat of allChats) {
+                    client.sendMessage(chat.jid, buff, video, { 
+                        mimetype: Mimetype.gif, 
+                        quoted: fTroli(2, 'Broadcast'),
+                        contextInfo: { forwardingScore: 508, isForwarded: true}, 
+                        caption: `*《BROADCAST BOT》*\n\n${q}` 
+                    })
+                }
+                reply(`Sukses mengirim Broadcast :\n\n${q}`)
+            } else {
+                for (let chat of allChats) {
+                    client.sendMessage(chat.jid, `*《BROADCAST BOT》*\n\n${q}`, text, {
+                        quoted: fTroli(2, 'Broadcast'),
+                        contextInfo: { forwardingScore: 508, isForwarded: true}
+                    })
+                }
+                reply(`Sukses mengirim Broadcast :\n\n${q}`)
+            }
+        }
+            break
+
         case 'public':{
             if(!isOwner) return
             if(isPublic === true) return
-            boolean.isPublic = true
-            fs.writeFileSync('./database/boolean.json', JSON.stringify(boolean))
-            boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))//membaca ulang json file
+            dataBot.isPublic = true
+            fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
+            dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))//membaca ulang json file
             fReply(`「 *PUBLIC-MODE* 」`)
         }
             break
         case 'self':{
             if(!isOwner) return
             if(isPublic === false) return
-            boolean.isPublic = false
-            fs.writeFileSync('./database/boolean.json', JSON.stringify(boolean))
-            boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
+            dataBot.isPublic = false
+            fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
+            dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
             fReply(`「 *SELF-MODE* 」`)
         }
             break
         case 'antidel':{
             if(!isOwner) return
             if(!q) return reply('pilih aktif/nonaktif')
-            let antidel = boolean.antidel
+            let antidel = dataBot.antidel
             if(q.toLowerCase() === 'aktif' || q.toLowerCase() === 'true') {
                 if(antidel === true) return reply('sudah aktif!')
-                boolean.antidel = true
-                fs.writeFileSync('./database/boolean.json', JSON.stringify(boolean))
-                boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
+                dataBot.antidel = true
+                fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
+                dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
                 fReply(`「 *ANTIDEL AKTIF* 」`)
             } else if(q.toLowerCase() === 'nonaktif' || q.toLowerCase() === 'false'){
                 if(antidel === false) return reply('beluk aktif!')
-                boolean.antidel = false
-                fs.writeFileSync('./database/boolean.json', JSON.stringify(boolean))
-                boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
+                dataBot.antidel = false
+                fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
+                dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
                 fReply(`「 *ANTIDEL NONAKTIF* 」`)
             } else{
                 reply('pilih *aktif/nonaktif* saja brother')
@@ -493,18 +566,18 @@ Owner BOT:
         case 'autoresponse':{
             if(!isOwner) return
             if(!q) return reply('pilih aktif/nonaktif')
-            let autoResponse = boolean.autoResponse
+            let autoResponse = dataBot.autoResponse
             if(q.toLowerCase() === 'aktif' || q.toLowerCase() === 'true') {
                 if(autoResponse === true) return reply('sudah aktif!')
-                boolean.autoResponse = true
-                fs.writeFileSync('./database/boolean.json', JSON.stringify(boolean))
-                boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
+                dataBot.autoResponse = true
+                fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
+                dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
                 fReply(`「 *AUTORESPONSE AKTIF* 」`)
             } else if(q.toLowerCase() === 'nonaktif' || q.toLowerCase() === 'false'){
                 if(autoResponse === false) return reply('belum aktif!')
-                boolean.autoResponse = false
-                fs.writeFileSync('./database/boolean.json', JSON.stringify(boolean))
-                boolean = JSON.parse(fs.readFileSync('./database/boolean.json'))
+                dataBot.autoResponse = false
+                fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
+                dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
                 fReply(`「 *AUTORESPONSE NONAKTIF* 」`)
             } else{
                 reply('pilih *aktif/nonaktif* saja brother')
@@ -545,8 +618,8 @@ Owner BOT:
             break
         case 'addresponse':{
             if (!isOwner) return
-            if (!q) return reply(`Masukan key dan responsenya\n\nContoh : ${prefix}addrespon *hai|halo*`)
-            if (!q.includes('|')) return reply(`Masukan key dan responsenya\n\nContoh : ${prefix}addrespon *hai|halo*`)
+            if (!q) return reply(`Masukan key dan responsenya\n\nContoh : ${userPrefix}addrespon *hai|halo*`)
+            if (!q.includes('|')) return reply(`Masukan key dan responsenya\n\nContoh : ${userPrefix}addrespon *hai|halo*`)
             let input = q.split("|")
             if (checkResponse(input[0], responseDb) === true) return reply(`Response tersebut sudah ada`)
             addResponse(input[0], input[1], sender, responseDb) 
@@ -555,36 +628,40 @@ Owner BOT:
             break
         case 'delresponse':{
             if (!isOwner) return
-            if (!q) return reply(`Masukan keynya\n\nContoh : ${prefix}delrespon *hai*`)
+            if (!q) return reply(`Masukan keynya\n\nContoh : ${userPrefix}delrespon *hai*`)
             if (!checkResponse(q, responseDb)) return reply(`Key tersebut tidak ada di database`)
             deleteResponse(q, responseDb)
             fReply(`Berhasil menghapus respon dengan key ${q}✔️`)
         }
             break
         case 'listresponse':{
+            if(!isOwner) return
             let txt = ``
             for (let i = 0; i < responseDb.length; i++){
                 txt += `❏ Key : ${responseDb[i].pesan}\n`
             }
-            reply(`List Response Bot : \n\n${txt}\n*Total : ${responseDb.length}*`)
+            reply(`List Auto Response Bot : \n\n${txt}\n*Total : ${responseDb.length}*`)
         }
             break
-        case 'addvn':{
+        case 'savemusic':
+        case 'savevn':{
             if(!isOwner) return
             if(!q) return reply('Masukan nama untuk custom vn nya!')
+            if(!msg.message.audioMessage && !isQuotedAudio) return reply('Cuma bisa simpan audio!')
             const encmedia = isQuotedAudio ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
-            await client.downloadAndSaveMediaMessage(encmedia, `./assets/customvn/${q}`)
-            fReply('Custom Vn Disimpan✔️')
+            await client.downloadAndSaveMediaMessage(encmedia, `./assets/saveaudio/${q}`)
+            fReply('Custom Vn/Music Disimpan✔️')
         }
             break
-        case 'saveimg':{
+        case 'savemedia':{
             if(!isOwner) return
-            if(!q) return reply('nama image nya?')
-            // const existFile = fs.readdirSync('./assets/saveImage')
+            if(!q) return reply('nama media nya?')
+            // const existFile = fs.readdirSync('./assets/savemedia')
             // if(existFile.includes(q)) q = q+`${Math.floor(Math.random()*10000)}`
-            const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
-            await client.downloadAndSaveMediaMessage(encmedia, `./assets/saveImage/${q}`)
-            fReply('Selesai Menyimpan Image✔️')
+            if(!isMedia && !isQuotedImage && !isQuotedVideo) return reply('Cuma bisa simpan image/video!')
+            const encmedia = isQuotedImage || isQuotedVideo ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
+            await client.downloadAndSaveMediaMessage(encmedia, `./assets/savemedia/${q}`)
+            fReply('Selesai Menyimpan Media✔️')
         }
             break
         case 'buggc':{
@@ -598,7 +675,7 @@ Owner BOT:
         case 'antilink':{
             if (!isGroup) return reply('Command kusus group!')
             if(!isGroupAdmins && !isOwner) return reply('Hanya untuk admin!')
-            if (!q) return reply(`untuk menggunakan command ini ketik :\n${prefix}antilink aktif/nonaktif`)
+            if (!q) return reply(`untuk menggunakan command ini ketik :\n${userPrefix}antilink aktif/nonaktif`)
             if (q.toLowerCase() === 'aktif') {
                 if (isAntiLink) return reply('Sudah Aktif Kak!')
                 antiLink.push(from)
@@ -618,7 +695,7 @@ Owner BOT:
         case 'antivirtex':{
             if (!isGroup) return reply('Command kusus group!')
             if(!isGroupAdmins && !isOwner) return reply('Hanya untuk admin!')
-            if (!q) return reply(`untuk menggunakan command ini ketik :\n${prefix}antilink aktif/nonaktif`)
+            if (!q) return reply(`untuk menggunakan command ini ketik :\n${userPrefix}antilink aktif/nonaktif`)
             if (q.toLowerCase() === 'aktif') {
             if (isAntiVirtex) return reply('Sudah Aktif')
                 antiVirtex.push(from)
@@ -741,8 +818,18 @@ Owner BOT:
             client.sendMessage(from, fs.readFileSync(sName), sticker, {contextInfo: {"mentionedJid": groupMembersId}})
         }
             break
+        case 'grouppic':
+        case 'gcpic':{
+            if(!isGroup) return reply('Command kusus group!')
+            let groupPic = ''
+            try { groupPic = await client.getProfilePicture(from) } 
+            catch { groupPic = mediaUrl.no_profile_group }
+            let groupPp = await getBuffer(groupPic)
+            await client.sendMessage(from, groupPp, image, {quoted : msg})
+        }
+            break
         case 'gpic':{
-            if (msg.message.extendedTextMessage === null || msg.message.extendedTextMessage === undefined) return reply('Mention member yang mau diambil ppnya!');
+            if (msg.message.extendedTextMessage === null || msg.message.extendedTextMessage === undefined) return reply('Mention member yang mau diambil PPnya!');
             let target = ''
             if (!msg.message.extendedTextMessage.contextInfo.participant) target = msg.message.extendedTextMessage.contextInfo.mentionedJid[0]
             else target = msg.message.extendedTextMessage.contextInfo.participant
@@ -772,15 +859,6 @@ Owner BOT:
                 listFreply += index+1+'.'+item+'\n'; 
             });
             reply(`Yang tersedia cuma : \n\n${listFreply}\n*Total : ${cmd.length}*`)
-        }
-            break
-        case 'listfreply':{
-            const cmd = ['msg', 'vn', 'image', 'video', 'toko', 'troli', 'gif', 'location', 'livelocation', 'doc', 'kontak', 'invite', 'stk']
-            let listFreply = ''
-            cmd.forEach((item, index) => {
-                listFreply += index+1+'.'+item+'\n'; 
-            });
-            reply(`List Freply Test : \n\n${listFreply}\n*Total : ${cmd.length}*`)
         }
             break
         case 'fakeurl':{
@@ -828,7 +906,7 @@ Owner BOT:
         case 'sticker':
         case 'stickers':
         case 's':{
-            if(type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${prefix}sticker`)
+            if(type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${userPrefix}sticker`)
             if ((type === 'videoMessage' && msg.message.videoMessage.seconds > 10 || isQuotedVideo && msg.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds > 10)) return reply('max durasi video 10 detik!')
             const encmedia = isQuotedVideo || isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
             const media = await client.downloadAndSaveMediaMessage(encmedia, `./sticker/stk`) 
@@ -845,12 +923,12 @@ Owner BOT:
         }
             break
         case 'swm':{
-            if(type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${prefix}sticker`)
+            if(type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${userPrefix}sticker`)
             if ((type === 'videoMessage' && msg.message.videoMessage.seconds > 10 || isQuotedVideo && msg.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds > 10)) return reply('max durasi video 10 detik!')
             const encmedia = isQuotedVideo || isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
             const media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/stk')
             const data = q.split('|')
-            const satu = data[0] !== '' ? data[0] : `edwindefine`
+            const satu = data[0] !== '' ? data[0] : ownerName
             const dua = typeof data[1] !== 'undefined' ? data[1] : ``
             const exif = await createExif(satu, dua)
             execSticker(exif, media)
@@ -870,7 +948,7 @@ Owner BOT:
             const encmedia = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
             const media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/stk')
             const data = q.split('|')
-            const satu = data[0] !== '' ? data[0] : `edwindefine`
+            const satu = data[0] !== '' ? data[0] : ownerName
             const dua = typeof data[1] !== 'undefined' ? data[1] : ``
             const exif = await createExif(satu, dua)
             execWebp(exif, media)
@@ -886,7 +964,7 @@ Owner BOT:
         }
             break
         case 'attp':{
-            if (args.length < 2) return reply(`Kirim perintah *${prefix}attp* teks`)
+            if (args.length < 2) return reply(`Kirim perintah *${userPrefix}attp* teks`)
             let attp = await getBuffer(`https://api.xteam.xyz/attp?file&text=${encodeURIComponent(q)}`)
             fs.writeFileSync('./sticker/attp.webp', attp)
             const media = './sticker/attp.webp'
@@ -937,31 +1015,50 @@ Owner BOT:
         }
             break   
 
-/********* Audio Processed *********/
-        case 'listvn':{
-            const customVn = fs.readdirSync('./assets/customvn')
-            let listVn = ''
-            customVn.forEach((item, index) => {
-                listVn += index+1+'.'+item.split('.')[0]+'\n'; 
+/********* Query Loacal Media *********/
+        case 'custommedia':{
+            if(!q) reply('Mau media yang mana?')
+            const saveMedia = fs.readdirSync('./assets/savemedia')
+            for(let i = 0; i<saveMedia.length; i++){
+                if(q.toLowerCase() === saveMedia[i].toLowerCase()){
+                    let tipe = saveMedia[i].split(".")[1] === 'jpg' || saveMedia[i].split(".")[1] === 'jpeg' || saveMedia[i].split(".")[1] === 'png' ? 'image' : 'video'
+                    if(tipe === 'image') client.sendMessage(from, { url: `assets/savemedia/${saveMedia[i]}` }, image, {quoted: msg})
+                    else client.sendMessage(from, { url: `assets/savemedia/${saveMedia[i]}` }, video, {quoted: msg})
+                    return cmdSuccess('custommedia sended')
+                }
+            }
+        }
+            break
+        case 'custommusic':{
+            if(!q) reply('Mau custom music yang mana?')
+            const saveAudio = fs.readdirSync('./assets/saveaudio')
+            for(let i = 0; i<saveAudio.length; i++){
+                if(q.toLowerCase() === saveAudio[i].split(".")[0].toLowerCase()){
+                    client.sendMessage(from, { url: `assets/saveaudio/${saveAudio[i]}` }, audio, { mimetype: Mimetype.mp4Audio, ptt : false })
+                    return cmdSuccess('custom music processed')
+                }
+            }
+            let listMusic = ''
+            saveAudio.forEach((item, index) => {
+                listMusic += '❒ '+item.split('.')[0]+'\n'; 
             });
-            reply(`List Custom Vn : \n\n${listVn}\n*Total : ${customVn.length}*`)
+            reply(`Yang tersedia cuma : \n\n${listMusic}\n*Total : ${saveAudio.length}*`)
         }
             break
         case 'customvn':{
             if(!q) reply('Mau custom vn yang mana?')
-            const customVn = fs.readdirSync('./assets/customvn')
-            for(let i = 0; i<customVn.length; i++){
-                if(q.toLowerCase() === customVn[i].split(".")[0].toLowerCase()){
-                    client.sendMessage(from, { url: `assets/customvn/${customVn[i]}` }, audio, { mimetype: Mimetype.mp4Audio, ptt : true })
+            const saveAudio = fs.readdirSync('./assets/saveaudio')
+            for(let i = 0; i<saveAudio.length; i++){
+                if(q.toLowerCase() === saveAudio[i].split(".")[0].toLowerCase()){
+                    client.sendMessage(from, { url: `assets/saveaudio/${saveAudio[i]}` }, audio, { mimetype: Mimetype.mp4Audio, ptt : true })
                     return cmdSuccess('custom vn processed')
                 }
             }
             let listVn = ''
-            customVn.forEach((item, index) => {
-                listVn += index+1+'.'+item.split('.')[0]+'\n'; 
+            saveAudio.forEach((item, index) => {
+                listVn += '❒ '+item.split('.')[0]+'\n'; 
             });
-            reply(`Yang tersedia cuma : \n\n${listVn}\n*Total : ${customVn.length}*`)
-            cmdSuccess('Custom vn processed')
+            reply(`Yang tersedia cuma : \n\n${listVn}\n*Total : ${saveAudio.length}*`)
         }
             break
 
@@ -982,20 +1079,21 @@ Owner BOT:
 
 /********* Downloader *********/
         case 'ytmp4':{
-            if (!q) return reply(`Kirim perintah *${prefix}ytmp4 https://youtu.be/MVIr6DX9HMo*`)
+            if (!q) return reply(`Kirim perintah *${userPrefix}ytmp4 [linkVideoYt]*\ncontoh:\n\n${userPrefix}ytmp4 https://youtu.be/MVIr6DX9HMo`)
             let isLink = q.match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
             if (!isLink) return reply('linknya salah/error!')
             try {
                 reply('⏳Tunggu...')
-                ytv(args[0])
+                ytv(q)
                     .then((res) => {
-                        const { dl_link, thumb, title, filesizeF, filesize } = res
+                        const { dl_link, thumb, title, filesizeF, filesize } = res                       
                         axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
-                            .then((a) => {
-                                if (Number(filesize) >= 40000) return sendMediaURL(from, thumb, `*YTMP 4!*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam bentuk link_`)
+                            .then((res) => {
+                                if (Number(filesize) >= 30000) return sendMediaURL(from, thumb, `*YTMP 4!*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${res.data}\n\n_Untuk durasi lebih dari batas disajikan dalam bentuk link_`)
                                 const captionsYtmp4 = `*Data Berhasil Didapatkan!*\n\n*Title* : ${title}\n*Ext* : MP4\n*Size* : ${filesizeF}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
                                 sendMediaURL(from, thumb, captionsYtmp4)
                                 sendMediaURL(from, dl_link).catch(() => reply('terjadi kesalahan/error!'))
+                                cmdSuccess('ytmp4 Processed')
                             })		
                     })
             } catch (err) {
@@ -1003,16 +1101,137 @@ Owner BOT:
             }
         }
             break
+        case 'ytmp3':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}ytmp3 [linkVideoYt]*\ncontoh:\n\n${userPrefix}ytmp3 https://youtu.be/MVIr6DX9HMo`)
+            let isLink = q.match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
+            if (!isLink) return reply('linknya salah/error!')
+            try {
+                reply('⏳Tunggu...')
+                yta(q)
+                    .then((res) => {
+                        const { dl_link, thumb, title, filesizeF, filesize } = res
+                        axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
+                            .then((res) => {
+                                if (Number(filesize) >= 20000) return sendMediaURL(from, thumb, `*Data Berhasil Didapatkan!*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${res.data}\n\n_Untuk durasi lebih dari batas disajikan dalam bentuk link_`)
+                                const captions = `*Data Berhasil Didapatkan!*\n\n*Title* : ${title}\n*Ext* : MP3\n*Size* : ${filesizeF}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
+                                sendMediaURL(from, thumb, captions)
+                                sendMediaURL(from, dl_link).catch(() => reply('terjadi kesalahan/error!'))
+                                cmdSuccess('ytmp3 Processed')
+                            })
+                    })
+            } catch (err) {
+                reply('terjadi kesalahan/error!')
+            }
+        }
+            break
+        case 'ig':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}ig [linkPostinganIg]*`)
+            if (!isUrl(q) && !q.includes('instagram.com')) return reply('linknya salah/error!')
+            reply('⏳Tunggu...')
+            hx.igdl(q)
+                .then(async(res) => {
+                    if(!res.medias) return reply(`*Gagal mendapatkan data*\nMungkin karena postingan tersebut berasal dari user yang diprivate!`)
+                    for(let i of res.medias){
+                        if(i.url.includes('mp4')){
+                            let link = await getBuffer(i.url)
+                            client.sendMessage(from, link, video, {quoted: msg, caption: `Type : ${i.type}`})
+                        } else {
+                            let link = await getBuffer(i.url)
+                            client.sendMessage(from, link, image, {quoted: msg, caption: `Type : ${i.type}`})                  
+                        }
+                    }
+                    cmdSuccess('ig downloader Processed')
+                }).catch(e => {
+                    reply('terjadi kesalahan/error!')
+                    console.log(e)
+                })
+        }
+            break
+        case 'igstory':{
+            if(!q) return reply(`Kirim perintah *${userPrefix}igStory [username]*`)
+            reply('⏳Tunggu...')
+            hx.igstory(q)
+                .then(async res => {
+                    if(!res.medias) return reply(`*Gagal mendapatkan data*\nMungkin karena user *${q}* adalah akun private atau tidak membuat story apapun!`) 
+                    for(let i of res.medias){
+                        if(i.url.includes('mp4')){
+                            let link = await getBuffer(i.url)
+                            client.sendMessage(from, link, video, {quoted: msg, caption: `Type : ${i.type}`})
+                        } else {
+                            let link = await getBuffer(i.url)
+                            client.sendMessage(from, link, image, {quoted: msg, caption: `Type : ${i.type}`})                  
+                        }
+                    }
+                    cmdSuccess('igstory Processed')
+                    
+                }).catch(e => {
+                    reply('terjadi kesalahan/error!')
+                    console.log(e)
+                })
+        }
+            break
+        case 'tiktok':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}tiktok [linkPostinganTiktok]*`)
+            if (!isUrl(q) && !q.includes('tiktok.com')) return reply('linknya salah/error!')
+            reply('⏳Tunggu...')
+            hx.ttdownloader(`${q}`)
+                .then(res => {
+                    const { wm, nowm, audio } = res
+                    axios.get(`https://tinyurl.com/api-create.php?url=${nowm}`)
+                        .then(async (res) => {
+                            let content = `*Link* : ${res.data}`
+                            client.sendMessage(from, {url:`${nowm}`}, video, {
+                                mimetype:'video/mp4',
+                                quoted: msg,
+                                caption: `*Berhasil Mendapatkan Data✔️*`
+                            })
+                        })
+                    cmdSuccess('tiktok downloader Processed')
+                }).catch(e => {
+                    reply('terjadi kesalahan/error!')
+                    console.log(e)
+                })
+        }
+            break
+
 /********* More *********/
+        
         case 'listcmd':{
             let listCmd = ''
             stickerCommand.forEach((item, index) => {
-                listCmd += index+1+'.'+item.value+'\n'; 
+                listCmd += '❒ '+item.value+'\n'; 
             });
             reply(`List Sticker Command : \n\n${listCmd}\n*Total : ${stickerCommand.length}*`)
         }
             break
-        
+        case 'listmedia':{
+            const saveMedia = fs.readdirSync('./assets/savemedia')
+            let listMedia = ''
+            saveMedia.forEach((item, index) => {
+                listMedia += '❒ '+item+'\n'; 
+            });
+            reply(`List Save Media : \n\n${listMedia}\n*Total : ${saveMedia.length}*`)
+        }
+            break
+        case 'listmusic':
+        case 'listvn':{
+            const saveAudio = fs.readdirSync('./assets/saveaudio')
+            let listVn = ''
+            saveAudio.forEach((item, index) => {
+                listVn += '❒ '+item.split('.')[0]+'\n'; 
+            });
+            reply(`List Custom Vn/Music : \n\n${listVn}\n*Total : ${saveAudio.length}*`)
+        }
+            break
+        case 'listfreply':{
+            const cmd = ['msg', 'vn', 'image', 'video', 'toko', 'troli', 'gif', 'location', 'livelocation', 'doc', 'kontak', 'invite', 'stk']
+            let listFreply = ''
+            cmd.forEach((item, index) => {
+                listFreply += '❒ '+item+'\n'; 
+            });
+            reply(`List Freply Test : \n\n${listFreply}\n*Total : ${cmd.length}*`)
+        }
+            break
 
     }
 

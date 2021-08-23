@@ -1,35 +1,43 @@
 const fs = require('fs')
 
-const menu = (pushname, prefix, sender, timeWita, isPublic) => {
-const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
+const menu = (pushname, prefix, prefixx, sender, timeWita, isPublic) => {
+const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
 
     //*│*⬡ *Prefix : 「 MULTI PREFIX 」*
     //*│*⬡ *Tag     :* @${sender.split('@')[0]}
     //*│*⬡ *Author : ${ownerName}*
-    return`*╭─❒* 「 edwindefine Ofc 」 
+    return`*╭─❒* 「 ${botName} 」 
 *│*
 *│*⬡ *Hallo kak*
 *│*⬡ *Nama : ${pushname}*
 *│*⬡ *WITA  : ${timeWita}*
-*│*⬡ *Prefix : 「 / 」*
+*│*⬡ *Prefix : 「 ${prefixx} 」*
 *│*⬡ *Bot mode : ${isPublic ? "PUBLIC-MODE" : "SELF-MODE"}*
 *└───────────────────*
 
 
 *╭─❒ OWNER*
+*│*⬡ setPrefix *prefix*
+*│*⬡ ${prefix}broadcast *teks*
 *│*⬡ ${prefix}public
 *│*⬡ ${prefix}self
-*│*⬡ ${prefix}antidel *aktif/nonaktif*
+*│*⬡ ${prefix}antidel *aktif/nonaktif* [rusak]
 *│*⬡ ${prefix}autoResponse *aktif/nonaktif*
 *│*⬡ ${prefix}addCmd *command*
 *│*⬡ ${prefix}removeCmd *command*
-*│*⬡ ${prefix}addVn *name*
+*│*⬡ ${prefix}saveVn/saveMusic *name*
+*│*⬡ ${prefix}saveMedia *name*
 *│*⬡ ${prefix}addResponse *key|response*
 *│*⬡ ${prefix}delResponse *key*
 *│*⬡ ${prefix}listResponse
 *│*⬡ ${prefix}getId
 *│*⬡ ${prefix}bugGc
-*│*⬡ ${prefix}saveImg *name*
+*│*
+*├❒ FAKE TEST*
+*│*⬡ ${prefix}freply *query*
+*│*⬡ ${prefix}fakeUrl
+*│*⬡ ${prefix}fakeInvite
+*│*⬡ ${prefix}fakeLocation
 *│*
 *├❒ GROUP MENU*
 *│*⬡ ${prefix}antilik *aktif/nonaktif*
@@ -39,15 +47,9 @@ const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.
 *│*⬡ ${prefix}demote *mention*
 *│*⬡ ${prefix}hidetag *teks*
 *│*⬡ ${prefix}stag
-*│*⬡ ${prefix}gpic *tag*
+*│*⬡ ${prefix}groupPic
+*│*⬡ ${prefix}gPic *tag*
 *│*⬡ ${prefix}linkGroup
-*│*
-*├❒ FAKE TEST*
-*│*⬡ ${prefix}freply *query*
-*│*⬡ ${prefix}listFreply
-*│*⬡ ${prefix}fakeUrl
-*│*⬡ ${prefix}fakeInvite
-*│*⬡ ${prefix}fakeLocation
 *│*
 *├❒ STICKER*
 *│*⬡ ${prefix}sticker
@@ -59,20 +61,28 @@ const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.
 *├❒ ANIME*
 *│*⬡ ${prefix}wallAnime
 *│*
-*├❒ AUDIO PROCESSED*
+*├❒ QUERY LOCAL MEDIA*
 *│*⬡ ${prefix}customVn *query*
-*│*⬡ ${prefix}listVn
+*│*⬡ ${prefix}customMusic *query*
+*│*⬡ ${prefix}customMedia *query*
 *│*
 *├❒ CONVERTER*
 *│*⬡ ${prefix}imgThumb
 *│*
 *├❒ DOWNLOADER*
 *│*⬡ ${prefix}ytmp4 *link*
+*│*⬡ ${prefix}ytmp3 *link*
+*│*⬡ ${prefix}ig *link*
+*│*⬡ ${prefix}igStory *username*
+*│*⬡ ${prefix}tiktok *link*
 *│*
 *├❒ MORE*
 *│*⬡ ${prefix}lmp (list message processed)
 *│*⬡ ${prefix}listCmd
-*└─────────────────*
+*│*⬡ ${prefix}listVn/listMusic
+*│*⬡ ${prefix}listFreply
+*│*
+*╘═══ 《 *By ${ownerName}* 》 ═══*
 
 `
 
