@@ -1,3 +1,33 @@
+//================================
+// BY edwindefine
+// Recode Boleh asal isi nama gua juga :)
+// Nyolong? dosa loh
+// Ada yang ditanyakan? chat gua
+// Thanks, jangan dihapus ya, kalau recode pun isiin nama gua juga
+//================================
+
+//============[ THX TO ]============
+// SEMUANYA :)
+//================================
+
+//=========[ ERROR FEATURES ]===========
+// [❗] GAADA
+//================================
+
+//=========[ API USED ]=========
+// https://api.xteam.xyz
+// https://nekos.life
+// https://tinyurl.com
+// https://edwndefine.herokuapp.com
+// https://hardianto-chan.herokuapp.com/
+//================================
+
+const ApiKey = 'edwinkey'
+
+//✔️
+//❌
+//❗
+
 /***************** MODULES *****************/
 const { 
     WAConnection, 
@@ -15,6 +45,7 @@ const got = require('got')
 const axios = require('axios')
 const request = require('request');
 const hx = require('hxz-api');
+const imgbb = require("imgbb-uploader");
 const speed = require('performance-now')
 
 /***************** UTILS *****************/
@@ -47,13 +78,15 @@ const {
     fInvite, 
     fSticker,
     fKontak
-} = require('../message/fakeReply')
+} = require('./fakeReply')
 const {createExif, execSticker, execWebp} = require('../sticker/function')
 const {getBuffer, start, info, success, close, getGroupAdmins, getGroupMembersId} = require('../lib/function')
 const {color, bgColor, hexColor} = require('../lib/color')
-const { menu } = require('../message/menu');
+const { menu } = require('./menu');
 const {addResponse, checkResponse, deleteResponse} = require('../lib/response');
 const { yta, ytv, igdl, upload, formatDate } = require('../lib/ytdl')
+const { webp2mp4File } = require('../lib/webp2mp4')
+const mess = require('./respons.js')
 
 
 /******** JSON AND ASSETS ********/
@@ -65,7 +98,7 @@ let antiLink = JSON.parse(fs.readFileSync('./database/antilink.json'))
 let antiVirtex = JSON.parse(fs.readFileSync('./database/antivirtex.json'))
 let responseDb = JSON.parse(fs.readFileSync('./database/response.json'))
 
-let imagePreview = fs.readFileSync('./assets/image/cecan.jpg')
+let imagePreview = fs.readFileSync('./assets/media/cecan.jpg')
 
 moment.tz.setDefault("Asia/Makassar").locale("id");
 
@@ -143,7 +176,7 @@ module.exports = async (chatUpdate, client) => {
     const cmdSuccess = (teks) => {return console.log(hexColor('  >   ', '#42ba5a')+hexColor(teks, '#42ba96'))}
     const cmdErr = (teks) => {return console.log(hexColor('  x   ', '#e30508')+hexColor(teks, '#F32013'))}
     const reply = (teks) => {client.sendMessage(from, teks, text, {quoted:msg})}
-    const reply2 = (teks) => {client.sendMessage(from, teks, text, {quoted: msg, thumbnail: fs.readFileSync(`./assets/image/karma_akabane_mini.jpg`)})}//terlihat image saat reply
+    const reply2 = (teks) => {client.sendMessage(from, teks, text, {quoted: msg, thumbnail: fs.readFileSync(`./assets/media/karma_akabane_mini.jpg`)})}//terlihat image saat reply
     const fReply = (teks) => {client.sendMessage(from, teks, text, {quoted:fMsg(2, 'Bot Verified'), contextInfo:{mentionedJid:sender}})}
 
     const sendMediaURL = async(to, url, teks="", mids=[]) =>{
@@ -202,9 +235,26 @@ module.exports = async (chatUpdate, client) => {
 
         return result
     }
+    const getRandom = (maxNumber) => {
+        return Math.floor(Math.random()*maxNumber)
+    }
 
     const isUrl = (url) => {
         return url.match(new RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%.+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%+.~#?&/=]*)/, 'gi'))
+    }
+    const fakeUrl = (title = `Shut Up your Mouth`, thumbnailUrl = mediaUrl.karma_akabane_mini_wm, url = '', mentions) => {
+        return{
+            sendEphemeral: true,
+            mentionedJid: [mentions],
+            "externalAdReply": {
+                "title": title,
+                "body": ``,
+                "previewType": "PHOTO",
+                "thumbnailUrl": thumbnailUrl,
+                "thumbnail": '',
+                "sourceUrl": url
+            }
+        }
     }
 
     /********** END FUNCTION **********/
@@ -246,6 +296,9 @@ module.exports = async (chatUpdate, client) => {
         console.log(color('[KICK]', 'red'), color('Received a virus text!', 'yellow'))
         client.groupRemove(from, [sender])
             .catch((e) => { reply(`Jadikan Bot Admin terlebih dahulu untuk menggunakan ANTIVIRTEX!`) })
+    }
+    if (isBanchat){
+        if (!isOwner)return 
     }
 
     /*** SetPrefix Bot ***/
@@ -328,10 +381,11 @@ module.exports = async (chatUpdate, client) => {
         const gambar = await client.prepareMessage(from, pp, image, {thumbnail: pp})
         const content = {
             imageMessage: gambar.message.imageMessage,
-            contentText: menu(pushname, userPrefix, dataBot.prefix === 'multi' ? 'MULTI-PREFIX' : dataBot.prefix, sender, timeWita, isPublic),
+            contentText: menu(pushname, dataBot.prefix === 'multi' ? '#' : dataBot.prefix, dataBot.prefix === 'multi' ? 'MULTI-PREFIX' : dataBot.prefix, sender, timeWita, isPublic),
             footerText: `Creator Bot Whatsapp\n© ${botName}`,
             buttons: [
-                {buttonId: 's&k', buttonText: {displayText: 'S&K'}, type: 1}
+                {buttonId: 's&k', buttonText: {displayText: 'S&K'}, type: 1},
+                {buttonId: 'speed', buttonText: {displayText: 'speed run'}, type: 1}
             ],
             headerType: 4
         }
@@ -361,16 +415,40 @@ Owner BOT:
 *YNTKTS*`)
 
     }
-    else if (userButtonResponse == 'contact creator') {
-        client.sendMessage(from, {displayName: 'Edwin', vcard: vCard}, contact, { quoted: msg })
-        fReply('Ini Creator Saya')
-    }
     else if (userButtonResponse == 'speed run') {
         const timestamp = speed();
         const latensi = speed() - timestamp 
         p0 =`Speed :\n${latensi.toFixed(4)} Second`
         fReply(p0)
     }
+    else if (userButtonResponse == 'donasi') {
+        const nomor = '085829271476'
+        const teks = 
+`*「 Donasi Agar Bot Tetap Online 」*
+
+*╭─❒ Donate*
+*│*
+*│* Saweria: https://saweria.co/edwindefine
+*│* Trakteer: https://trakteer.id/edwindefine
+*│* Pulsa: ${nomor}
+*│* Dana: ${nomor}
+*│* Ovo: ${nomor}
+*│* Gopay: ${nomor}
+*│*
+*╘═══ 《 *By ${ownerName}* 》 ═══*
+
+Harga Kuota Mahal bos :)
+`
+        client.sendMessage(from, teks, text, {
+            quoted: fDoc(2, 'Donate'),
+            contextInfo: fakeUrl('Donasi Untuk Bot', mediaUrl.donate, 'https://saweria.co/edwindefine', sender)
+        })
+    }
+    else if (userButtonResponse == 'contact creator') {
+        client.sendMessage(from, {displayName: 'Edwin', vcard: vCard}, contact, { quoted: msg })
+        fReply('Ini Creator Saya')
+    }
+    
 
     
     switch(command){
@@ -389,9 +467,9 @@ Owner BOT:
             //             //"jpegThumbnail": image
             //         } 
             //     }
-            // }, thumbnail: fs.readFileSync(`./assets/image/karma_akabane_mini.jpg`)})
-            client.sendMessage(from, fs.readFileSync('./assets/image/nagapixel smp.jpg'), image, {
-                thumbnail: fs.readFileSync('./assets/image/karma_akabane_wm.jpg'),
+            // }, thumbnail: fs.readFileSync(`./assets/media/karma_akabane_mini.jpg`)})
+            client.sendMessage(from, fs.readFileSync('./assets/media/nagapixel smp.jpg'), image, {
+                thumbnail: fs.readFileSync('./assets/media/karma_akabane_wm.jpg'),
                 caption: 'makan nih testo ajg!'
             })
         }
@@ -400,7 +478,7 @@ Owner BOT:
         case 'tes':
         case 'help':{
             const buttons = [
-                {buttonId: 'speed', buttonText: {displayText: 'speed run'}, type: 1},
+                {buttonId: 'donasi', buttonText: {displayText: 'donasi'}, type: 1},
                 {buttonId: 'owner', buttonText: {displayText: 'contact creator'}, type: 1},
                 {buttonId: 'menu', buttonText: {displayText: 'menu bot'}, type: 1}
             ]
@@ -412,25 +490,33 @@ Owner BOT:
             const gambar = await client.prepareMessage(from, pp, image, { thumbnail: pp })
             const content = {
                 imageMessage: gambar.message.imageMessage,
-                contentText: 'Active!',
+                contentText: `Active!\n\nNote: Jika button tidak terlihat bisa tulis *${userPrefix}menubot* untuk melihat semua menu`,
                 footerText: `Creator Bot Whatsapp\n© ${botName}`,
                 buttons: buttons,
                 headerType: 4
             }
             await client.sendMessage(from, content, buttonsMessage, {
                 quoted: fKontak(0, pushname),
-                contextInfo: {
-                    sendEphemeral: true,
-                    mentionedJid: [sender],
-                    "externalAdReply": {
-                        "title": `Shut Up your Mouth`,
-                        "body": ``,
-                        "previewType": "PHOTO",
-                        "thumbnailUrl": mediaUrl.karma_akabane_mini_wm,
-                        "thumbnail": '',
-                        "sourceUrl": ''
-                    }
-                },
+                contextInfo: fakeUrl('Shut Up Your Mouth', mediaUrl.karma_akabane_mini_wm, '', sender),
+            })
+        }
+            break
+        case 'menubot':{
+            let pic = mediaUrl.karma_akabane_mini_wm
+            let pp = await getBuffer(pic)
+            const gambar = await client.prepareMessage(from, pp, image, {thumbnail: pp})
+            const content = {
+                imageMessage: gambar.message.imageMessage,
+                contentText: menu(pushname, dataBot.prefix === 'multi' ? '#' : dataBot.prefix, dataBot.prefix === 'multi' ? 'MULTI-PREFIX' : dataBot.prefix, sender, timeWita, isPublic),
+                footerText: `Creator Bot Whatsapp\n© ${botName}`,
+                buttons: [
+                    {buttonId: 's&k', buttonText: {displayText: 'S&K'}, type: 1},
+                    {buttonId: 'speed', buttonText: {displayText: 'speed run'}, type: 1}
+                ],
+                headerType: 4
+            }
+            client.sendMessage(from, content, buttonsMessage, {
+                quoted : fLiveLoc(2, "Menu Bot")
             })
         }
             break
@@ -542,6 +628,18 @@ Owner BOT:
             fReply(`「 *SELF-MODE* 」`)
         }
             break
+        case 'removebanchat':
+        case 'removebc':{
+            if(!isOwner) return
+            if(!q) return reply("Id groupnya?")
+            if(!banchat.includes(q)) return reply('Id group tersebut tidak ada dalam daftar banchat!')
+            let index = banchat.indexOf(q)
+            banchat.splice(index, 1)
+            fs.writeFileSync('./database/banchat.json', JSON.stringify(banchat))
+            banchat = JSON.parse(fs.readFileSync('./database/banchat.json'))
+            fReply(`Berhasil menghapus banchat dari group *${q}*`)
+        } 
+            break
         case 'antidel':{
             if(!isOwner) return
             if(!q) return reply('pilih aktif/nonaktif')
@@ -553,7 +651,7 @@ Owner BOT:
                 dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
                 fReply(`「 *ANTIDEL AKTIF* 」`)
             } else if(q.toLowerCase() === 'nonaktif' || q.toLowerCase() === 'false'){
-                if(antidel === false) return reply('beluk aktif!')
+                if(antidel === false) return reply('belum aktif!')
                 dataBot.antidel = false
                 fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
                 dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
@@ -586,7 +684,7 @@ Owner BOT:
             break
         case 'addcmd':{
             if(!isOwner) return
-            if(!isQuotedSticker) return reply('Stickernya?')
+            if(!isQuotedSticker) return reply('reply stickernya om!')
             if(!q) return reply('Masukan value command untuk sticker!')
             for(let i = 0; i<stickerCommand.length; i++){
                 if(msg.message.extendedTextMessage.contextInfo.quotedMessage.stickerMessage.fileSha256.toString() == stickerCommand[i].key){
@@ -614,6 +712,14 @@ Owner BOT:
                 }
             }
             reply('❌Tidak bisa menemukan command sticker tersebut')
+        }
+            break
+        case 'listcmd':{
+            let listCmd = ''
+            stickerCommand.forEach((item, index) => {
+                listCmd += '❒ '+item.value+'\n'; 
+            });
+            reply(`List Sticker Command : \n\n${listCmd}\n*Total : ${stickerCommand.length}*`)
         }
             break
         case 'addresponse':{
@@ -664,6 +770,29 @@ Owner BOT:
             fReply('Selesai Menyimpan Media✔️')
         }
             break
+        case 'imgbb':
+            if(!isOwner) return
+            reply(mess.wait)
+            const encmedia  = isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
+            const media = await client.downloadAndSaveMediaMessage(encmedia)
+            imgbb('69c7d14a0633cbc3bee6c3085fcaf388', media)
+                .then(data => {
+                    let content = `
+╭─「 IMGBB UPLOADER 」
+│
+├• ID : ${data.id}
+├• MimeType : ${data.image.mime}
+├• Extension : ${data.image.extension}
+│
+├• URL : ${data.display_url}
+╰─────────────────────`
+                    ibb = fs.readFileSync(media)
+                    client.sendMessage(from, ibb, image, { quoted: fMsg(0, 'imgbb'), caption: content })
+                })
+                .catch(err => {
+                    throw err 
+                })
+            break
         case 'buggc':{
             if(!isOwner) return
             client.toggleDisappearingMessages(from)
@@ -673,8 +802,8 @@ Owner BOT:
 
 /******** Group ********/
         case 'antilink':{
-            if (!isGroup) return reply('Command kusus group!')
-            if(!isGroupAdmins && !isOwner) return reply('Hanya untuk admin!')
+            if (!isGroup) return reply(mess.only.group)
+            if(!isGroupAdmins && !isOwner) return reply(mess.only.admin)
             if (!q) return reply(`untuk menggunakan command ini ketik :\n${userPrefix}antilink aktif/nonaktif`)
             if (q.toLowerCase() === 'aktif') {
                 if (isAntiLink) return reply('Sudah Aktif Kak!')
@@ -693,8 +822,8 @@ Owner BOT:
         }
             break
         case 'antivirtex':{
-            if (!isGroup) return reply('Command kusus group!')
-            if(!isGroupAdmins && !isOwner) return reply('Hanya untuk admin!')
+            if (!isGroup) return reply(mess.only.group)
+            if(!isGroupAdmins && !isOwner) return reply(mess.only.admin)
             if (!q) return reply(`untuk menggunakan command ini ketik :\n${userPrefix}antilink aktif/nonaktif`)
             if (q.toLowerCase() === 'aktif') {
             if (isAntiVirtex) return reply('Sudah Aktif')
@@ -713,9 +842,9 @@ Owner BOT:
         }
             break
         case 'add':{
-            if (!isGroup) return reply('Command kusus group!')
-            if (!isGroupAdmins) return reply('Hanya untuk admin!')
-            if (!isBotGroupAdmins) return reply('Jadiin Bot admin dulu!')
+            if (!isGroup) return reply(mess.only.group)
+            if (!isGroupAdmins) return reply(mess.only.admin)
+            if (!isBotGroupAdmins) return reply(mess.only.adminbot)
             if (!q) return reply(`Nomor yang mau di add?`)
             try {
                 let nomor = `${convertNumber(q)}@s.whatsapp.net`
@@ -727,9 +856,9 @@ Owner BOT:
         }
             break
         case 'kick':{
-            if (!isGroup) return reply('Command kusus group!')
-            if (!isGroupAdmins) return reply('Hanya untuk admin!')
-            if (!isBotGroupAdmins) return reply('Jadiin Bot admin dulu!')
+            if (!isGroup) return reply(mess.only.group)
+            if (!isGroupAdmins) return reply(mess.only.admin)
+            if (!isBotGroupAdmins) return reply(mess.only.adminbot)
             if (msg.message.extendedTextMessage === null || msg.message.extendedTextMessage === undefined) return reply('Mention member yang mau dikick!');
             if (!msg.message.extendedTextMessage.contextInfo.participant) {
                 const target = msg.message.extendedTextMessage.contextInfo.mentionedJid
@@ -751,9 +880,9 @@ Owner BOT:
         }
             break
         case 'promote':{
-            if (!isGroup) return reply('Command kusus group!')
-            if (!isGroupAdmins) return reply('Hanya untuk admin!')
-            if (!isBotGroupAdmins) return reply('Jadiin Bot admin dulu!')
+            if (!isGroup) return reply(mess.only.group)
+            if (!isGroupAdmins) return reply(mess.only.admin)
+            if (!isBotGroupAdmins) return reply(mess.only.adminbot)
             if (msg.message.extendedTextMessage === null || msg.message.extendedTextMessage === undefined) return reply('Mention member yang mau promote!');
             if (!msg.message.extendedTextMessage.contextInfo.participant) {
                 const target = msg.message.extendedTextMessage.contextInfo.mentionedJid
@@ -773,9 +902,9 @@ Owner BOT:
         }
             break
         case 'demote':{
-            if (!isGroup) return reply('Command kusus group!')
-            if (!isGroupAdmins) return reply('Hanya untuk admin!')
-            if (!isBotGroupAdmins) return reply('Jadiin Bot admin dulu!')
+            if (!isGroup) return reply(mess.only.group)
+            if (!isGroupAdmins) return reply(mess.only.admin)
+            if (!isBotGroupAdmins) return reply(mess.only.adminbot)
             if (msg.message.extendedTextMessage === null || msg.message.extendedTextMessage === undefined) return reply('Mention member yang mau demote!');
             if (!msg.message.extendedTextMessage.contextInfo.participant) {
                 const target = msg.message.extendedTextMessage.contextInfo.mentionedJid
@@ -794,33 +923,76 @@ Owner BOT:
             reply(content)
         }
             break
-            
+        case 'banchat':{
+            if (!isGroup) return reply(mess.only.group)
+            if (!isOwner && !isGroupAdmins)return reply(mess.only.admin)
+            if (!q) return reply('pilih aktif/nonaktif')
+            if(q.toLowerCase() === 'aktif' || q.toLowerCase() === 'true') {
+                if(isBanchat) return reply('sudah aktif!')
+                banchat.push(from)
+                fs.writeFileSync('./database/banchat.json', JSON.stringify(banchat))
+                banchat = JSON.parse(fs.readFileSync('./database/banchat.json'))
+                fReply(`*BANCHAT AKTIF DI GROUP INI*`)
+            } else if(q.toLowerCase() === 'nonaktif' || q.toLowerCase() === 'false'){
+                if(!isBanchat) return reply('belum aktif!')
+                let index = banchat.indexOf(from)
+                banchat.splice(index, 1)
+                fs.writeFileSync('./database/banchat.json', JSON.stringify(banchat))
+                banchat = JSON.parse(fs.readFileSync('./database/banchat.json'))
+                fReply(`*BANCHAT NONAKTIF DI GROUP INI*`)
+            } else{
+                reply('pilih *aktif/nonaktif* saja brother')
+            }
+        }
+            break
+        case 'listbanchat': 
+        case 'listbc':{
+            let listBc = ''
+            banchat.forEach((item, index) => {
+                listBc += '❒ '+item+'\n'; 
+            });
+            reply(`List Banchat : \n\n${listBc}\n*Total : ${banchat.length}*`)
+        }
+            break   
         case 'linkgc':
         case 'linkgrup':
         case 'linkgroup':{
-            if (!isGroup) return reply('Command kusus group!')
-            if (!isBotGroupAdmins) return reply('Jadiin Bot admin dulu!')
+            if (!isGroup) return reply(mess.only.group)
+            if (!isBotGroupAdmins) return reply(mess.only.adminbot)
             const linkGc = await client.groupInviteCode(from)
             const content = `\`\`\`「 Link Group 」\`\`\`\n\n•> Group *${groupName}* :\nhttps://chat.whatsapp.com/${linkGc}\n\nRamein ya...`
             fReply(content)
         }
             break
+        case 'join':{
+            if (!q) return reply('Link groupnya?')
+            try {
+                if (!isUrl(q) && !q.includes('whatsapp.com')) return reply(mess.err.link)
+                let inviteCode = q.split('https://chat.whatsapp.com/')[1]
+                if (!inviteCode) return reply('Pastikan link sudah benar!')
+                let response = await client.acceptInvite(inviteCode)
+                fReply('Sukses masuk group✔️')
+            } catch {
+                reply(mess.err.link)
+            }
+        }
+            break
         case 'hidetag':{
-            if (!isGroup) return reply('Command kusus group!')
-            if (!isGroupAdmins) return reply('Hanya untuk admin!')
+            if (!isGroup) return reply(mess.only.group)
+            if (!isGroupAdmins && !isOwner) return reply(mess.only.admin)
             !q ? client.sendMessage(from, 'Hallo', extendedText, {contextInfo: {"mentionedJid": groupMembersId}}) : client.sendMessage(from, q, extendedText, {contextInfo: {"mentionedJid": groupMembersId}})
         }
             break
         case 'stag':{
-            if (!isGroup) return reply('Command kusus group!')
-            if (!isGroupAdmins) return reply('Hanya untuk admin!')
+            if (!isGroup) return reply(mess.only.group)
+            if (!isGroupAdmins && !isOwner) return reply(mess.only.admin)
             const sName = './sticker/sTag.webp'
             client.sendMessage(from, fs.readFileSync(sName), sticker, {contextInfo: {"mentionedJid": groupMembersId}})
         }
             break
         case 'grouppic':
         case 'gcpic':{
-            if(!isGroup) return reply('Command kusus group!')
+            if(!isGroup) return reply(mess.only.group)
             let groupPic = ''
             try { groupPic = await client.getProfilePicture(from) } 
             catch { groupPic = mediaUrl.no_profile_group }
@@ -861,20 +1033,19 @@ Owner BOT:
             reply(`Yang tersedia cuma : \n\n${listFreply}\n*Total : ${cmd.length}*`)
         }
             break
+        case 'listfreply':{
+            const cmd = ['msg', 'vn', 'image', 'video', 'toko', 'troli', 'gif', 'location', 'livelocation', 'doc', 'kontak', 'invite', 'stk']
+            let listFreply = ''
+            cmd.forEach((item, index) => {
+                listFreply += '❒ '+item+'\n'; 
+            });
+            reply(`List Freply Test : \n\n${listFreply}\n*Total : ${cmd.length}*`)
+        }
+            break
         case 'fakeurl':{
             client.sendMessage(from, `*Wake Up Brother*`, text, {
-                contextInfo: {
-                    sendEphemeral: true,
-                    mentionedJid: [sender],
-                    "externalAdReply": {
-                        "title": `Shut Up your Mouth`,
-                        "body": ``,
-                        "previewType": "PHOTO",
-                        "thumbnailUrl": mediaUrl.karma_akabane_mini_wm,
-                        "thumbnail": "",//fs.readFileSync('./assets/image/karma_akabane_mini.jpg'),
-                        "sourceUrl": ''//"https://edwindefine.000webhostapp.com"
-                    }
-                }, quoted: msg})
+                contextInfo: fakeUrl('Shut Up Your Mouth', mediaUrl.karma_akabane_mini_wm, q ? q : '', sender), 
+                quoted: msg})
             cmdSuccess('Fake Url processed')
         }
             break
@@ -884,7 +1055,7 @@ Owner BOT:
                 inviteCode: 'eHk94nePYV38fjX+',
                 inviteExpiration: 1,
                 groupName: 'NagaPixel',
-                jpegThumbnail: fs.readFileSync('./assets/image/karma_akabane_mini.jpg'),
+                jpegThumbnail: fs.readFileSync('./assets/media/karma_akabane_mini.jpg'),
                 caption: 'Memaksa untuk bergabung ke Grup ini!'
             }, groupInviteMessage)//, {contextInfo : {'mentionedJid' : groupMembersId}}
             cmdSuccess('invite group processed')
@@ -906,8 +1077,8 @@ Owner BOT:
         case 'sticker':
         case 'stickers':
         case 's':{
-            if(type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${userPrefix}sticker`)
-            if ((type === 'videoMessage' && msg.message.videoMessage.seconds > 10 || isQuotedVideo && msg.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds > 10)) return reply('max durasi video 10 detik!')
+            if (type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${userPrefix}sticker`)
+            if ((type === 'videoMessage' && msg.message.videoMessage.seconds > 7 || isQuotedVideo && msg.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds > 7)) return reply('max durasi video 7 detik!')
             const encmedia = isQuotedVideo || isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
             const media = await client.downloadAndSaveMediaMessage(encmedia, `./sticker/stk`) 
             execSticker('./sticker/sticker.exif', media)
@@ -944,7 +1115,7 @@ Owner BOT:
         }
             break
         case 'take':{
-            if (!isQuotedSticker) return reply('reply stickernya om')
+            if (!isQuotedSticker) return reply('reply stickernya om!')
             const encmedia = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
             const media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/stk')
             const data = q.split('|')
@@ -964,8 +1135,9 @@ Owner BOT:
         }
             break
         case 'attp':{
-            if (args.length < 2) return reply(`Kirim perintah *${userPrefix}attp* teks`)
-            let attp = await getBuffer(`https://api.xteam.xyz/attp?file&text=${encodeURIComponent(q)}`)
+            if (!q) return reply(`Kirim perintah *${userPrefix}attp* teks`)
+            // let attp = await getBuffer(`https://api.xteam.xyz/attp?file&text=${encodeURIComponent(q)}`)
+            let attp = await getBuffer(`https://hardianto-chan.herokuapp.com/api/maker/attp?text=${q}&apikey=hardianto`)
             fs.writeFileSync('./sticker/attp.webp', attp)
             const media = './sticker/attp.webp'
             const pack = 'yntkts'
@@ -983,24 +1155,6 @@ Owner BOT:
                 })
         }
             break
-        case 'toimg':{
-            if (!isQuotedSticker) return reply('reply stickernya om')
-            let encmedia = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
-            let media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/toimg')
-            if (msg.message.extendedTextMessage.contextInfo.quotedMessage.stickerMessage.isAnimated === true){
-                reply(`Blum support sticker gif :/`)
-            } else {
-                let imgName = './sticker/image.png'
-                exec(`ffmpeg -i ${media} ${imgName}`, (err) => {
-                    fs.unlinkSync(media)
-                    if (err) return reply('Gagal :V')
-                    client.sendMessage(from, fs.readFileSync(imgName), image, {quoted: msg, caption: '.'})
-                    fs.unlinkSync(imgName)
-                })
-            }
-        }
-            break
-        
 
 /********* Anime *********/ 
         case 'wallanime':{
@@ -1008,12 +1162,19 @@ Owner BOT:
             res = JSON.parse(res.body)
             const wallAnime = await getBuffer(res.url)
             await client.sendMessage(from, wallAnime, image, {
-                quoted:msg,
-                thumbnail: imagePreview,
+                quoted: msg,
             })
             cmdSuccess(`Sending WallAnime`)
         }
             break   
+        case 'chara':{
+            if(!q) return reply(`Mau gambar apa?\ncontoh\n\n${prefix}chara nino`)
+            let chara = await hx.chara(q)
+            let random = chara[Math.floor(Math.random() * chara.length)]
+            let img = await getBuffer(random)
+            await ALDI.sendMessage(from, img, image,{quoted: msg})
+        }
+            break
 
 /********* Query Loacal Media *********/
         case 'custommedia':{
@@ -1027,6 +1188,15 @@ Owner BOT:
                     return cmdSuccess('custommedia sended')
                 }
             }
+        }
+            break
+        case 'listmedia':{
+            const saveMedia = fs.readdirSync('./assets/savemedia')
+            let listMedia = ''
+            saveMedia.forEach((item, index) => {
+                listMedia += '❒ '+item+'\n'; 
+            });
+            reply(`List Save Media : \n\n${listMedia}\n*Total : ${saveMedia.length}*`)
         }
             break
         case 'custommusic':{
@@ -1061,8 +1231,31 @@ Owner BOT:
             reply(`Yang tersedia cuma : \n\n${listVn}\n*Total : ${saveAudio.length}*`)
         }
             break
+        case 'listmusic':
+            case 'listvn':{
+                const saveAudio = fs.readdirSync('./assets/saveaudio')
+                let listVn = ''
+                saveAudio.forEach((item, index) => {
+                    listVn += '❒ '+item.split('.')[0]+'\n'; 
+                });
+                reply(`List Custom Vn/Music : \n\n${listVn}\n*Total : ${saveAudio.length}*`)
+            }
+                break
+
 
 /********* Converter *********/
+        case 'nulis':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}nulis [teks]*\ncontoh:\n\n${userPrefix}nulis aku anak pintar`)
+            // let buffer = await getBuffer(`https://edwindefine.herokuapp.com/api/maker/nulis?apikey=${ApiKey}&text=${q}`)
+            let url = await axios.get(`https://hardianto-chan.herokuapp.com/api/nuliskiri?text=${q}`)
+            let buffer = url.data
+            client.sendMessage(from, buffer, image, {
+                caption: `*Berhasil Diproses✔️*`, 
+                quoted: fToko(2, 'Nulis')
+            })
+            cmdSuccess('nulis processed')
+        }
+            break
         case 'imgthumb':{
             if(type !== 'imageMessage' && !isQuotedImage) return reply('image nya?')
             const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg                
@@ -1075,15 +1268,163 @@ Owner BOT:
             cmdSuccess(`imgThumb Processed`)
         }
             break
+        case 'tomedia':{
+            if (!isQuotedSticker) return reply('reply stickernya om!')
+            const encmedia = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
+            const media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/toimg')
+            if (msg.message.extendedTextMessage.contextInfo.quotedMessage.stickerMessage.isAnimated === true){
+                webp2mp4File(media).then(res=>{
+                    sendMediaURL(from, res.result, 'Done')
+                    fs.unlinkSync(media)
+                    cmdSuccess('tomp4 processed')
+                })
+            } else {
+                const ext = media.endsWith('png') ? 'png' : 'jpg'
+                let imgName = `./sticker/${getRandom(1000)}.${ext}`
+                exec(`ffmpeg -i ${media} ${imgName}`, (err) => {
+                    if (err) return reply(mess.err.fail)
+                    fs.unlinkSync(media)
+                    client.sendMessage(from, fs.readFileSync(imgName), image, {quoted: msg, caption: '.'})
+                    fs.unlinkSync(imgName)
+                })
+                cmdSuccess('toimg processed')
+            }
+        }
+            break
+        case 'tomp3':{
+            if (!msg.message.videoMessage && !isQuotedVideo) return reply('reply videonya om!')
+            reply(mess.wait)
+            const encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(msg).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : msg
+            const media = await client.downloadAndSaveMediaMessage(encmedia, './assets/tomp3')
+            let theName = `assets/${getRandom(1000)}.mp3`
+            exec(`ffmpeg -i ${media} ${theName}`, (err) => {
+                if (err) return reply(mess.err.msg)
+                fs.unlinkSync(media)
+                let buffer = fs.readFileSync(theName)
+                client.sendMessage(from, buffer, audio, { mimetype: 'audio/mp4', quoted: msg })
+                fs.unlinkSync(theName)
+            })
+            cmdSuccess('tomp3 processed')
+        }
+            break
 
+/********* Text Maker *********/
+        case 'pornhub':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}pornhub [teks1|teks2]*\ncontoh:\n\n${userPrefix}pornhub anak|dajjal`)
+            let data = q.split("|")
+            let satu = data[0]
+            let dua = data[1]
+            if(!dua) return reply('Teks2 nya?')
+            let url = await axios.get(`https://edwindefine.herokuapp.com/api/textpro/porn-hub?apikey=${ApiKey}&text1=${satu}&text2=${dua}`)
+            if(!url.data.result) return reply(mess.err.teks)
+            let buffer = await getBuffer(url.data.result)
+            client.sendMessage(from, buffer, image, {
+                caption: `*Berhasil Diproses✔️*`, 
+                quoted: fToko(2, 'pornhub')
+            })
+            cmdSuccess('pornhub processed')
+        }
+            break
+        case 'logowolf':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}logowolf [teks1|teks2]*\ncontoh:\n\n${userPrefix}logowolf edwin|define`)
+            let data = q.split("|")
+            let satu = data[0]
+            let dua = data[1]
+            if(!dua) return reply('Teks2 nya?')
+            let url = await axios.get(`https://edwindefine.herokuapp.com/api/textpro/logo-wolf?apikey=${ApiKey}&text=${satu}&text2=${dua}`)
+            if(!url.data.result) return reply(mess.err.teks)
+            let buffer = await getBuffer(url.data.result)
+            client.sendMessage(from, buffer, image, {
+                caption: `*Berhasil Diproses✔️*`, 
+                quoted: fMsg(2, 'logowolf')
+            })
+            cmdSuccess('logowolf processed')
+        }
+            break
+        case 'logowolf2':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}logowolf2 [teks1|teks2]*\ncontoh:\n\n${userPrefix}logowolf2 edwin|define`)
+            let data = q.split("|")
+            let satu = data[0]
+            let dua = data[1]
+            if(!dua) return reply('Teks2 nya?')
+            let url = await axios.get(`https://edwindefine.herokuapp.com/api/textpro/logo-wolf2?apikey=${ApiKey}&text=${satu}&text2=${dua}`)
+            if(!url.data.result) return reply(mess.err.teks)
+            let buffer = await getBuffer(url.data.result)
+            client.sendMessage(from, buffer, image, {
+                caption: `*Berhasil Diproses✔️*`, 
+                quoted: fMsg(2, 'logowolf 2')
+            })
+            cmdSuccess('logowolf2 processed')
+        }
+            break
+        case 'naturalleaves':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}naturalLeaves [teks]*\ncontoh:\n\n${userPrefix}naturalLeaves edwin`)
+            let url = await axios.get(`https://edwindefine.herokuapp.com/api/textpro/natural-leaves?apikey=${Apikey}&text=${q}`)
+            if(!url.data.result) return reply(mess.err.teks)
+            let buffer = await getBuffer(url.data.result)
+            client.sendMessage(from, buffer, image, {
+                caption: `*Berhasil Diproses✔️*`, 
+                quoted: fMsg(2, 'natural leaves')
+            })
+            cmdSuccess('naturalleaves processed')
+        }
+            break
+        case 'blackpink':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}blackpink [teks]*\ncontoh:\n\n${userPrefix}blackpink edwin`)
+            let url = await axios.get(`https://edwindefine.herokuapp.com/api/textpro/black-pink?apikey=${Apikey}&text=${q}`)
+            if(!url.data.result) return reply(mess.err.teks)
+            let buffer = await getBuffer(url.data.result)
+            client.sendMessage(from, buffer, image, {
+                caption: `*Berhasil Diproses✔️*`, 
+                quoted: fMsg(2, 'blackpink')
+            })
+            cmdSuccess('blackpink processed')
+        }
+            break
+        case 'dropwater':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}dropwater [teks]*\ncontoh:\n\n${userPrefix}dropwater edwin`)
+            let url = await axios.get(`https://edwindefine.herokuapp.com/api/textpro/drop-water?apikey=${Apikey}&text=${q}`)
+            if(!url.data.result) return reply(mess.err.teks)
+            let buffer = await getBuffer(url.data.result)
+            client.sendMessage(from, buffer, image, {
+                caption: `*Berhasil Diproses✔️*`, 
+                quoted: fMsg(2, 'drop water')
+            })
+            cmdSuccess('dropwater processed')
+        }
+            break
+        case 'christmas':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}christmas [teks]*\ncontoh:\n\n${userPrefix}christmas edwin`)
+            let url = await axios.get(`https://edwindefine.herokuapp.com/api/textpro/christmas?apikey=${ApiKey}&text=${q}`)
+            if(!url.data.result) return reply(mess.err.teks)
+            let buffer = await getBuffer(url.data.result)
+            client.sendMessage(from, buffer, image, {
+                caption: `*Berhasil Diproses✔️*`, 
+                quoted: fMsg(2, 'christmas')
+            })
+            cmdSuccess('christmas processed')
+        }
+            break
+        case '3dgradient':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}3dgradient [teks]*\ncontoh:\n\n${userPrefix}3dgradient edwin`)
+            let url = await axios.get(`https://edwindefine.herokuapp.com/api/textpro/3d-gradient?apikey=${ApiKey}&text=${q}`)
+            if(!url.data.result) return reply(mess.err.teks)
+            let buffer = await getBuffer(url.data.result)
+            client.sendMessage(from, buffer, image, {
+                caption: `*Berhasil Diproses✔️*`, 
+                quoted: fMsg(2, '3dgradient')
+            })
+            cmdSuccess('3dgradient processed')
+        }
+            break
 
 /********* Downloader *********/
         case 'ytmp4':{
             if (!q) return reply(`Kirim perintah *${userPrefix}ytmp4 [linkVideoYt]*\ncontoh:\n\n${userPrefix}ytmp4 https://youtu.be/MVIr6DX9HMo`)
             let isLink = q.match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
-            if (!isLink) return reply('linknya salah/error!')
+            if (!isLink) return reply(mess.err.link)
             try {
-                reply('⏳Tunggu...')
+                reply(mess.wait)
                 ytv(q)
                     .then((res) => {
                         const { dl_link, thumb, title, filesizeF, filesize } = res                       
@@ -1092,21 +1433,21 @@ Owner BOT:
                                 if (Number(filesize) >= 30000) return sendMediaURL(from, thumb, `*YTMP 4!*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${res.data}\n\n_Untuk durasi lebih dari batas disajikan dalam bentuk link_`)
                                 const captionsYtmp4 = `*Data Berhasil Didapatkan!*\n\n*Title* : ${title}\n*Ext* : MP4\n*Size* : ${filesizeF}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
                                 sendMediaURL(from, thumb, captionsYtmp4)
-                                sendMediaURL(from, dl_link).catch(() => reply('terjadi kesalahan/error!'))
+                                sendMediaURL(from, dl_link).catch(() => reply(mess.err.msg))
                                 cmdSuccess('ytmp4 Processed')
                             })		
                     })
             } catch (err) {
-                reply('terjadi kesalahan/error!')
+                reply(mess.err.msg)
             }
         }
             break
         case 'ytmp3':{
             if (!q) return reply(`Kirim perintah *${userPrefix}ytmp3 [linkVideoYt]*\ncontoh:\n\n${userPrefix}ytmp3 https://youtu.be/MVIr6DX9HMo`)
             let isLink = q.match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
-            if (!isLink) return reply('linknya salah/error!')
+            if (!isLink) return reply(mess.err.link)
             try {
-                reply('⏳Tunggu...')
+                reply(mess.wait)
                 yta(q)
                     .then((res) => {
                         const { dl_link, thumb, title, filesizeF, filesize } = res
@@ -1115,19 +1456,19 @@ Owner BOT:
                                 if (Number(filesize) >= 20000) return sendMediaURL(from, thumb, `*Data Berhasil Didapatkan!*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${res.data}\n\n_Untuk durasi lebih dari batas disajikan dalam bentuk link_`)
                                 const captions = `*Data Berhasil Didapatkan!*\n\n*Title* : ${title}\n*Ext* : MP3\n*Size* : ${filesizeF}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
                                 sendMediaURL(from, thumb, captions)
-                                sendMediaURL(from, dl_link).catch(() => reply('terjadi kesalahan/error!'))
+                                sendMediaURL(from, dl_link).catch(() => reply(mess.err.msg))
                                 cmdSuccess('ytmp3 Processed')
                             })
                     })
             } catch (err) {
-                reply('terjadi kesalahan/error!')
+                reply(mess.err.msg)
             }
         }
             break
         case 'ig':{
             if (!q) return reply(`Kirim perintah *${userPrefix}ig [linkPostinganIg]*`)
-            if (!isUrl(q) && !q.includes('instagram.com')) return reply('linknya salah/error!')
-            reply('⏳Tunggu...')
+            if (!isUrl(q) && !q.includes('instagram.com')) return reply(mess.err.link)
+            reply(mess.wait)
             hx.igdl(q)
                 .then(async(res) => {
                     if(!res.medias) return reply(`*Gagal mendapatkan data*\nMungkin karena postingan tersebut berasal dari user yang diprivate!`)
@@ -1142,14 +1483,14 @@ Owner BOT:
                     }
                     cmdSuccess('ig downloader Processed')
                 }).catch(e => {
-                    reply('terjadi kesalahan/error!')
+                    reply(mess.err.msg)
                     console.log(e)
                 })
         }
             break
         case 'igstory':{
             if(!q) return reply(`Kirim perintah *${userPrefix}igStory [username]*`)
-            reply('⏳Tunggu...')
+            reply(mess.wait)
             hx.igstory(q)
                 .then(async res => {
                     if(!res.medias) return reply(`*Gagal mendapatkan data*\nMungkin karena user *${q}* adalah akun private atau tidak membuat story apapun!`) 
@@ -1165,15 +1506,15 @@ Owner BOT:
                     cmdSuccess('igstory Processed')
                     
                 }).catch(e => {
-                    reply('terjadi kesalahan/error!')
+                    reply(mess.err.msg)
                     console.log(e)
                 })
         }
             break
         case 'tiktok':{
             if (!q) return reply(`Kirim perintah *${userPrefix}tiktok [linkPostinganTiktok]*`)
-            if (!isUrl(q) && !q.includes('tiktok.com')) return reply('linknya salah/error!')
-            reply('⏳Tunggu...')
+            if (!isUrl(q) && !q.includes('tiktok.com')) return reply(mess.err.link)
+            reply(mess.wait)
             hx.ttdownloader(`${q}`)
                 .then(res => {
                     const { wm, nowm, audio } = res
@@ -1188,50 +1529,23 @@ Owner BOT:
                         })
                     cmdSuccess('tiktok downloader Processed')
                 }).catch(e => {
-                    reply('terjadi kesalahan/error!')
+                    reply(mess.err.msg)
                     console.log(e)
                 })
         }
             break
+        case 'pinterest':{
+            if (!q) return reply(`Kirim perintah *${userPrefix}pinterest [query]*`)
+            let pin = await hx.pinterest(q)
+            let random = pin[Math.floor(Math.random() * pin.length)]
+            let gambar = await getBuffer(random)
+            await client.sendMessage(from, gambar, image, {quoted: msg})
+            cmdSuccess('pinterest downloader Processed')
+        }
+            break
 
-/********* More *********/
+/********* More *********/        
         
-        case 'listcmd':{
-            let listCmd = ''
-            stickerCommand.forEach((item, index) => {
-                listCmd += '❒ '+item.value+'\n'; 
-            });
-            reply(`List Sticker Command : \n\n${listCmd}\n*Total : ${stickerCommand.length}*`)
-        }
-            break
-        case 'listmedia':{
-            const saveMedia = fs.readdirSync('./assets/savemedia')
-            let listMedia = ''
-            saveMedia.forEach((item, index) => {
-                listMedia += '❒ '+item+'\n'; 
-            });
-            reply(`List Save Media : \n\n${listMedia}\n*Total : ${saveMedia.length}*`)
-        }
-            break
-        case 'listmusic':
-        case 'listvn':{
-            const saveAudio = fs.readdirSync('./assets/saveaudio')
-            let listVn = ''
-            saveAudio.forEach((item, index) => {
-                listVn += '❒ '+item.split('.')[0]+'\n'; 
-            });
-            reply(`List Custom Vn/Music : \n\n${listVn}\n*Total : ${saveAudio.length}*`)
-        }
-            break
-        case 'listfreply':{
-            const cmd = ['msg', 'vn', 'image', 'video', 'toko', 'troli', 'gif', 'location', 'livelocation', 'doc', 'kontak', 'invite', 'stk']
-            let listFreply = ''
-            cmd.forEach((item, index) => {
-                listFreply += '❒ '+item+'\n'; 
-            });
-            reply(`List Freply Test : \n\n${listFreply}\n*Total : ${cmd.length}*`)
-        }
-            break
 
     }
 

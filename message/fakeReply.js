@@ -1,6 +1,6 @@
 const fs = require('fs')
 
-const miniThumbnail = fs.readFileSync('./assets/image/karma_akabane_mini.jpg')
+const miniThumbnail = fs.readFileSync('./assets/media/karma_akabane_mini.jpg')
 const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
 
 const keyType = [
