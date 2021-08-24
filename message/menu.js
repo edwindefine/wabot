@@ -65,7 +65,7 @@ const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('
 *│*⬡ ${prefix}groupPic
 *│*⬡ ${prefix}gPic *tag*
 *│*
-*├❒ STICKER*
+*├❒ STICKER*_not work_
 *│*⬡ ${prefix}sticker
 *│*⬡ ${prefix}swm *pack | author*
 *│*⬡ ${prefix}take *pack | author*
