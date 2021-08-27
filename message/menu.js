@@ -15,12 +15,13 @@ const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('
 *│*⬡ *Bot mode : ${isPublic ? "PUBLIC-MODE" : "SELF-MODE"}*
 *└───────────────────*
 
-
 *╭─❒ OWNER*
 *│*⬡ setPrefix *prefix*
 *│*⬡ ${prefix}broadcast *teks*
 *│*⬡ ${prefix}public
 *│*⬡ ${prefix}self
+*│*⬡ ${prefix}setExif *pack|author* [!emoji]
+*│*⬡ ${prefix}setImgPrev
 *│*⬡ ${prefix}removebanchat *groupId*
 *│*⬡ ${prefix}antidel *aktif/nonaktif* [rusak]
 *│*⬡ ${prefix}autoResponse *aktif/nonaktif*
@@ -43,11 +44,11 @@ const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('
 *│*⬡ ${prefix}fakeInvite
 *│*⬡ ${prefix}fakeLocation
 *│*
-*├❒ QUERY LOCAL MEDIA*
-*│*⬡ ${prefix}customVn *query*
-*│*⬡ ${prefix}customMusic *query*
+*├❒ STORAGE*
+*│*⬡ ${prefix}sendVn *query*
+*│*⬡ ${prefix}sendMusic *query*
 *│*⬡ ${prefix}listVn/listMusic
-*│*⬡ ${prefix}customMedia *query*
+*│*⬡ ${prefix}sendMedia *query*
 *│*⬡ ${prefix}listMedia
 *│*
 *├❒ GROUP MENU*
@@ -65,7 +66,7 @@ const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('
 *│*⬡ ${prefix}groupPic
 *│*⬡ ${prefix}gPic *tag*
 *│*
-*├❒ STICKER*_not work_
+*├❒ STICKER*
 *│*⬡ ${prefix}sticker
 *│*⬡ ${prefix}swm *pack | author*
 *│*⬡ ${prefix}take *pack | author*
@@ -77,12 +78,38 @@ const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('
 *│*
 *├❒ CONVERTER*
 *│*⬡ ${prefix}nulis *teks*
+*│*⬡ ${prefix}tts *bahasa* *teks*
 *│*⬡ ${prefix}imgThumb
 *│*⬡ ${prefix}toMedia
 *│*⬡ ${prefix}tomp3
 *│*
+*├❒ KERANG MENU*
+*│*⬡ ${prefix}apakah *teks*
+*│*⬡ ${prefix}kapankah *teks*
+*│*⬡ ${prefix}rate *teks*
+*│*⬡ ${prefix}jadian *teks*
+*│*
 *├❒ TEXT MAKER*
 *│*⬡ ${prefix}pornhub *teks1|teks2*
+*│*⬡ ${prefix}logowolf *teks1|teks2*
+*│*⬡ ${prefix}logowolf2 *teks1|teks2*
+*│*⬡ ${prefix}naturalLeaves *teks*
+*│*⬡ ${prefix}blackpink *teks*
+*│*⬡ ${prefix}dropwater *teks*
+*│*⬡ ${prefix}christmas *teks*
+*│*⬡ ${prefix}3dgradient *teks*
+*│*⬡ ${prefix}shadow *teks*
+*│*⬡ ${prefix}romantic *teks*
+*│*⬡ ${prefix}smoke *teks*
+*│*⬡ ${prefix}naruto *teks*
+*│*⬡ ${prefix}love *teks*
+*│*⬡ ${prefix}underGrass *teks*
+*│*⬡ ${prefix}doubleHeart *teks*
+*│*⬡ ${prefix}butterfly *teks*
+*│*⬡ ${prefix}coffeCup *teks*
+*│*
+*├❒ SEARCH*
+*│*⬡ ${prefix}igstalk *username*
 *│*
 *├❒ DOWNLOADER*
 *│*⬡ ${prefix}ytmp4 *link*

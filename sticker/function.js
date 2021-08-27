@@ -2,7 +2,7 @@ const fs = require('fs')
 const ffmpeg = require('fluent-ffmpeg')
 const { exec, spawn } = require("child_process");
 
-const createExif = (pack, author) => {
+const createExif = (pack, author, filename) => {
     const code = [0x00,0x00,0x16,0x00,0x00,0x00]
     const exif = {
         "sticker-pack-id": "com.client.tech",
@@ -29,10 +29,17 @@ const createExif = (pack, author) => {
     const __ = Buffer.from(len, "hex")
     const ___ = Buffer.from(code)
     const ____ = Buffer.from(JSON.stringify(exif))
-    return new Promise(resolve => {
-        fs.writeFileSync('./sticker/stickerWm.exif', Buffer.concat([_, __, ___, ____]))
-        resolve(`./sticker/stickerWm.exif`)
-    })
+    if(!filename){
+        return new Promise(resolve => {
+            fs.writeFileSync('./sticker/stickerWm.exif', Buffer.concat([_, __, ___, ____]))
+            resolve(`./sticker/stickerWm.exif`)
+        })
+    } else{
+        return new Promise(resolve => {
+            fs.writeFileSync(`./sticker/${filename}.exif`, Buffer.concat([_, __, ___, ____]))
+            resolve(`./sticker/${filename}.exif`)
+        }) 
+    }
 }
 
 const execSticker = (exif, media) => {
