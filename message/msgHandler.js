@@ -1115,6 +1115,7 @@ Harga Kuota Mahal bos :)
         case 'sticker':
         case 'stickers':
         case 's':{
+            return
             if (type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${userPrefix}sticker`)
             if ((type === 'videoMessage' && msg.message.videoMessage.seconds > 7 || isQuotedVideo && msg.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds > 7)) return reply('max durasi video 7 detik!')
             const encmedia = isQuotedVideo || isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
@@ -1132,6 +1133,7 @@ Harga Kuota Mahal bos :)
         }
             break
         case 'swm':{
+            return
             if(type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${userPrefix}sticker`)
             if ((type === 'videoMessage' && msg.message.videoMessage.seconds > 10 || isQuotedVideo && msg.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds > 10)) return reply('max durasi video 10 detik!')
             const encmedia = isQuotedVideo || isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
@@ -1153,6 +1155,7 @@ Harga Kuota Mahal bos :)
         }
             break
         case 'take':{
+            return
             if (!isQuotedSticker) return reply('reply stickernya om!')
             const encmedia = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
             const media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/stk')
@@ -1173,6 +1176,7 @@ Harga Kuota Mahal bos :)
         }
             break
         case 'attp':{
+            return
             if (!q) return reply(`Kirim perintah *${userPrefix}attp* teks`)
             // let attp = await getBuffer(`https://api.xteam.xyz/attp?file&text=${encodeURIComponent(q)}`)
             let attp = await getBuffer(`https://hardianto-chan.herokuapp.com/api/maker/attp?text=${q}&apikey=hardianto`)
