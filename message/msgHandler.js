@@ -83,17 +83,17 @@ const {
     fKontak
 } = require('./fakeReply')
 const {createExif, execSticker, execWebp} = require('../sticker/function')
-const {getBuffer, pickRandom, start, info, success, close, getGroupAdmins, getGroupMembersId} = require('../lib/function')
+const {start, info, success, close, getBuffer, getBuffer2, pickRandom, getGroupAdmins, getGroupMembersId} = require('../lib/function')
 const {color, bgColor, hexColor} = require('../lib/color')
 const { menu } = require('./menu');
 const {addResponse, checkResponse, deleteResponse} = require('../lib/response');
 const { yta, ytv, igdl, upload, formatDate } = require('../lib/ytdl')
 const { webp2mp4File } = require('../lib/webp2mp4')
-const mess = require('./respons.js')
+const mess = require('./reply.js')
 
 
 /******** JSON AND ASSETS ********/
-const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
+const {ownerNumber, ownerName, botName, mediaUrl, imgbbToken} = JSON.parse(fs.readFileSync('./config.json'))
 let dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
 let stickerCommand = JSON.parse(fs.readFileSync('./sticker/command.json'))
 let banchat = JSON.parse(fs.readFileSync('./database/banchat.json'))
@@ -102,6 +102,7 @@ let antiVirtex = JSON.parse(fs.readFileSync('./database/antivirtex.json'))
 let responseDb = JSON.parse(fs.readFileSync('./database/response.json'))
 
 let imagePreview = fs.readFileSync(dataBot.imgprev)
+let fakeImg = fs.readFileSync(dataBot.fakeImg)
 
 moment.tz.setDefault("Asia/Makassar").locale("id");
 
@@ -179,7 +180,7 @@ module.exports = async (chatUpdate, client) => {
     const cmdSuccess = (teks) => {return console.log(hexColor('  >   ', '#42ba5a')+hexColor(teks, '#42ba96'))}
     const cmdErr = (teks) => {return console.log(hexColor('  x   ', '#e30508')+hexColor(teks, '#F32013'))}
     const reply = (teks) => {client.sendMessage(from, teks, text, {quoted:msg})}
-    const reply2 = (teks) => {client.sendMessage(from, teks, text, {quoted: msg, thumbnail: fs.readFileSync(`./assets/media/karma_akabane_mini.jpg`)})}//terlihat image saat reply
+    const reply2 = (teks) => {client.sendMessage(from, teks, text, {quoted: msg, thumbnail: fs.readFileSync(fakeImg)})}//terlihat image saat reply
     const fReply = (teks) => {client.sendMessage(from, teks, text, {quoted:fMsg(2, 'Bot Verified'), contextInfo:{mentionedJid:sender}})}
 
     const sendMediaURL = async(to, url, teks="", mids=[]) =>{
@@ -482,12 +483,17 @@ Harga Kuota Mahal bos :)
                 contextInfo:{}
             })
             // client.sendMessage(from, fs.readFileSync('./assets/media/nagapixel smp.jpg'), image, {
-            //     thumbnail: fs.readFileSync('./assets/media/karma_akabane_wm.jpg'),
+            //     thumbnail: fs.readFileSync(fakeImg),
             //     caption: 'makan nih testo ajg!'
             // })
         }
             break
+        case 'daftar':{
+            fReply('Ketik *#menu* untuk memulai!')
+        }
+            break
         case 'menu':
+        case 'bot':
         case 'tes':
         case 'help':{
             const buttons = [
@@ -566,8 +572,7 @@ Harga Kuota Mahal bos :)
 
 
 /******** Owner ********/
-        case 'broadcast':
-        case 'bc':{
+        case 'broadcast':{
             client.updatePresence(from, Presence.composing)
             if (!isOwner) return 
             if (!q) return reply('Teksnya?')
@@ -583,17 +588,6 @@ Harga Kuota Mahal bos :)
                     })
                 }
                 reply(`Sukses mengirim Broadcast :\n\n${q}`)
-            } else if (isMedia && !msg.message.imageMessage && !msg.message.videoMessage.gifPlayback || isQuotedVideo && !msg.message.extendedTextMessage.contextInfo.videoMessage.gifPlayback) {
-                const encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(msg).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : msg
-                let buff = await client.downloadMediaMessage(encmedia)
-                for (let chat of allChats) {
-                    client.sendMessage(chat.jid, buff, video, { 
-                        quoted: fTroli(2, 'Broadcast'), 
-                        contextInfo: { forwardingScore: 508, isForwarded: true}, 
-                        caption: `*《BROADCAST BOT》*\n\n${q}`
-                    })
-                }
-                reply(`Sukses mengirim Broadcast :\n\n${q}`)
             } else if (isMedia && !msg.message.imageMessage || isQuotedVideo) {
                 const encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(msg).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : msg
                 let buff = await client.downloadMediaMessage(encmedia)
@@ -603,6 +597,17 @@ Harga Kuota Mahal bos :)
                         quoted: fTroli(2, 'Broadcast'),
                         contextInfo: { forwardingScore: 508, isForwarded: true}, 
                         caption: `*《BROADCAST BOT》*\n\n${q}` 
+                    })
+                }
+                reply(`Sukses mengirim Broadcast :\n\n${q}`)
+            } else if (isMedia && !msg.message.imageMessage && !msg.message.videoMessage.gifPlayback || isQuotedVideo && !msg.message.extendedTextMessage.contextInfo.videoMessage.gifPlayback) {
+                const encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(msg).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : msg
+                let buff = await client.downloadMediaMessage(encmedia)
+                for (let chat of allChats) {
+                    client.sendMessage(chat.jid, buff, video, { 
+                        quoted: fTroli(2, 'Broadcast'), 
+                        contextInfo: { forwardingScore: 508, isForwarded: true}, 
+                        caption: `*《BROADCAST BOT》*\n\n${q}`
                     })
                 }
                 reply(`Sukses mengirim Broadcast :\n\n${q}`)
@@ -647,17 +652,29 @@ Harga Kuota Mahal bos :)
             cmdSuccess('setexif processed')
         }
             break
-        case 'setimgpreview':
-        case 'setimgprev':{
+        case 'setpreviewimg':
+        case 'setprevimg':{
             if (!isOwner) return
             if (!msg.message.imageMessage && !isQuotedImage) return reply('Reply sebuah image!')
             const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
-            const media = await client.downloadAndSaveMediaMessage(encmedia, `./assets/media/imgPrev`)
+            const media = await client.downloadAndSaveMediaMessage(encmedia, `./assets/botMedia/imgPrev`)
             dataBot.imgprev = media
             fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
             dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
             fReply('Berhasil mengganti imagepreview✔️')
-            cmdSuccess('setimgpreview processed')
+            cmdSuccess('setPreviewImg processed')
+        }
+            break
+        case 'setfakeimg':{
+            if (!isOwner) return
+            if (!msg.message.imageMessage && !isQuotedImage) return reply('Reply sebuah image!')
+            const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
+            const media = await client.downloadAndSaveMediaMessage(encmedia, `./assets/botMedia/fakeImg`)
+            dataBot.fakeImg = media
+            fs.writeFileSync('./database/data_bot.json', JSON.stringify(dataBot))
+            dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
+            fReply('Berhasil mengganti fakeImage✔️')
+            cmdSuccess('setFakeImg processed')
         }
             break
         case 'removebanchat':
@@ -813,7 +830,7 @@ Harga Kuota Mahal bos :)
             reply(mess.wait)
             const encmedia  = isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
             const media = await client.downloadAndSaveMediaMessage(encmedia)
-            imgbb('69c7d14a0633cbc3bee6c3085fcaf388', media)
+            imgbb(imgbbToken, media)
                 .then(data => {
                     let content = `
 ╭─「 IMGBB UPLOADER 」
@@ -830,6 +847,20 @@ Harga Kuota Mahal bos :)
                 .catch(err => {
                     throw err 
                 })
+            break
+        case 'join':{
+            if (!isOwner) return
+            if (!q) return reply('Link groupnya?')
+            try {
+                if (!isUrl(q) && !q.includes('whatsapp.com')) return reply(mess.err.link)
+                let inviteCode = q.split('https://chat.whatsapp.com/')[1]
+                if (!inviteCode) return reply('Pastikan link sudah benar!')
+                let response = await client.acceptInvite(inviteCode)
+                fReply('Sukses masuk group✔️')
+            } catch {
+                reply(mess.err.link)
+            }
+        }
             break
         case 'buggc':{
             if(!isOwner) return
@@ -1002,19 +1033,6 @@ Harga Kuota Mahal bos :)
             fReply(content)
         }
             break
-        case 'join':{
-            if (!q) return reply('Link groupnya?')
-            try {
-                if (!isUrl(q) && !q.includes('whatsapp.com')) return reply(mess.err.link)
-                let inviteCode = q.split('https://chat.whatsapp.com/')[1]
-                if (!inviteCode) return reply('Pastikan link sudah benar!')
-                let response = await client.acceptInvite(inviteCode)
-                fReply('Sukses masuk group✔️')
-            } catch {
-                reply(mess.err.link)
-            }
-        }
-            break
         case 'hidetag':{
             if (!isGroup) return reply(mess.only.group)
             if (!isGroupAdmins && !isOwner) return reply(mess.only.admin)
@@ -1093,7 +1111,7 @@ Harga Kuota Mahal bos :)
                 inviteCode: 'eHk94nePYV38fjX+',
                 inviteExpiration: 1,
                 groupName: 'NagaPixel',
-                jpegThumbnail: fs.readFileSync('./assets/media/karma_akabane_mini.jpg'),
+                jpegThumbnail: fs.readFileSync(fakeImg),
                 caption: 'Memaksa untuk bergabung ke Grup ini!'
             }, groupInviteMessage)//, {contextInfo : {'mentionedJid' : groupMembersId}}
             cmdSuccess('invite group processed')
@@ -1115,7 +1133,6 @@ Harga Kuota Mahal bos :)
         case 'sticker':
         case 'stickers':
         case 's':{
-            return
             if (type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${userPrefix}sticker`)
             if ((type === 'videoMessage' && msg.message.videoMessage.seconds > 7 || isQuotedVideo && msg.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds > 7)) return reply('max durasi video 7 detik!')
             const encmedia = isQuotedVideo || isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
@@ -1133,7 +1150,6 @@ Harga Kuota Mahal bos :)
         }
             break
         case 'swm':{
-            return
             if(type !== 'videoMessage' && type !== 'imageMessage' && !isQuotedImage && !isQuotedVideo) return reply(`Kirim media gambar/video/gif dengan caption ${userPrefix}sticker`)
             if ((type === 'videoMessage' && msg.message.videoMessage.seconds > 10 || isQuotedVideo && msg.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds > 10)) return reply('max durasi video 10 detik!')
             const encmedia = isQuotedVideo || isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
@@ -1155,7 +1171,6 @@ Harga Kuota Mahal bos :)
         }
             break
         case 'take':{
-            return
             if (!isQuotedSticker) return reply('reply stickernya om!')
             const encmedia = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
             const media = await client.downloadAndSaveMediaMessage(encmedia, './sticker/stk')
@@ -1176,7 +1191,6 @@ Harga Kuota Mahal bos :)
         }
             break
         case 'attp':{
-            return
             if (!q) return reply(`Kirim perintah *${userPrefix}attp* teks`)
             // let attp = await getBuffer(`https://api.xteam.xyz/attp?file&text=${encodeURIComponent(q)}`)
             let attp = await getBuffer(`https://hardianto-chan.herokuapp.com/api/maker/attp?text=${q}&apikey=hardianto`)
@@ -1199,26 +1213,79 @@ Harga Kuota Mahal bos :)
             break
 
 /********* Anime *********/ 
+        case 'chara':{
+            if(!q) return reply(`Mau gambar apa?\ncontoh\n\n${userPrefix}chara nino`)
+            let chara = await hx.chara(q)
+            if(chara.length === 0) return reply('Hasil tidak ditemukan!')
+            let random = chara[Math.floor(Math.random() * chara.length)]
+            let img = await getBuffer(random)
+            await client.sendMessage(from, img, image, {quoted: msg})
+            cmdSuccess(`chara processed`)
+        }
+            break
         case 'wallanime':{
             let res = await got.get(`https://nekos.life/api/v2/img/wallpaper`)
             res = JSON.parse(res.body)
-            const wallAnime = await getBuffer(res.url)
-            await client.sendMessage(from, wallAnime, image, {
+            const media = await getBuffer(res.url)
+            await client.sendMessage(from, media, image, {
                 quoted: msg,
             })
-            cmdSuccess(`Sending WallAnime`)
+            cmdSuccess(`wallanime processed`)
         }
-            break   
-        case 'chara':{
-            if(!q) return reply(`Mau gambar apa?\ncontoh\n\n${prefix}chara nino`)
-            let chara = await hx.chara(q)
-            let random = chara[Math.floor(Math.random() * chara.length)]
-            let img = await getBuffer(random)
-            await client.sendMessage(from, img, image,{quoted: msg})
+            break
+        case 'neko':
+        case 'waifu':
+        case 'avatar':
+        case 'holo':
+        case 'gecg':{
+            let res = await got.get(`https://nekos.life/api/v2/img/${command}`)
+            res = JSON.parse(res.body)
+            const media = await getBuffer2(res.url)
+            await client.sendMessage(from, media, image, {
+                quoted: msg,
+            })
+            cmdSuccess(`${command} processed`)
         }
             break
 
-/********* Query Loacal Media *********/
+/********* Anime Link *********/ 
+        case 'smug':
+        case 'hug':
+        case 'slap':
+        case 'feed':
+        case 'poke':
+        case 'pat':
+        case 'tickle':
+        case 'cuddle':{
+            let res = await got.get(`https://nekos.life/api/v2/img/${command}`)
+            res = JSON.parse(res.body)
+            await client.sendMessage(from, res.url, text, {
+                quoted: msg,
+            })
+            cmdSuccess(`${command} processed`)
+        }
+            break
+
+/********* NSWF *********/ 
+        case 'hentai':
+        case 'yuri':
+        case 'cum':
+        case 'solo':
+        case 'boobs':
+        case 'anal':
+        case 'hololewd':
+        case 'lewd':{
+            let res = await got.get(`https://nekos.life/api/v2/img/${command}`)
+            res = JSON.parse(res.body)
+            await client.sendMessage(from, res.url, text, {
+                quoted: msg,
+            })
+            cmdSuccess(`${command} processed`)
+        }
+            break
+
+
+/********* Storage *********/
         case 'sendmedia':{
             if(!q) reply('Mau media yang mana?')
             const saveMedia = fs.readdirSync('./assets/savemedia')
@@ -1288,19 +1355,21 @@ Harga Kuota Mahal bos :)
 /********* Converter *********/
         case 'nulis':{
             if (!q) return reply(`Kirim perintah *${userPrefix}nulis [teks]*\ncontoh:\n\n${userPrefix}nulis aku anak pintar`)
-            // let buffer = await getBuffer(`https://edwindefine.herokuapp.com/api/maker/nulis?apikey=${ApiKey}&text=${q}`)
-            let url = await axios.get(`https://hardianto-chan.herokuapp.com/api/nuliskiri?text=${q}`)
-            let buffer = url.data
-            client.sendMessage(from, buffer, image, {
-                caption: `*Berhasil Diproses✔️*`, 
-                quoted: fToko(2, 'Nulis')
-            })
-            cmdSuccess('nulis processed')
+            try{
+                let buffer = await getBuffer(`https://edwindefine.herokuapp.com/api/maker/nulis?apikey=${ApiKey}&text=${q}`)
+                client.sendMessage(from, buffer, image, {
+                    caption: `*Berhasil Diproses✔️*`, 
+                    quoted: fToko(2, 'Nulis')
+                })
+                cmdSuccess('nulis processed')
+            } catch{
+                return reply('Maaf fitur *nulis* tidak tersedia karena persediaan apikey sudah habis, silakan coba lagi lain waktu')
+            }
         }
             break
         case 'tts':{
-            if (!q) return reply(`Kirim perintah *${userPrefix}ptt [bahasa] [teks]*\ncontoh:\n\n${userPrefix}ptt id halo`)
-            if (args.length < 2) return reply(`Kirim perintah *${userPrefix}ptt [bahasa] [teks]*\ncontoh:\n\n${userPrefix}ptt id halo`)
+            if (!q) return reply(`Kirim perintah *${userPrefix}tts [bahasa] [teks]*\ncontoh:\n\n${userPrefix}tts id halo`)
+            if (args.length < 3) return reply(`Kirim perintah *${userPrefix}tts [bahasa] [teks]*\ncontoh:\n\n${userPrefix}tts id halo`)
             const ttsId = gtts('id')
             const ttsEn = gtts('en')
             const ttsJp = gtts('ja')
@@ -1532,9 +1601,10 @@ Harga Kuota Mahal bos :)
 //photooxy
         case 'shadow':{
             if (!q) return reply(`Kirim perintah *${userPrefix}shadow [teks]*\ncontoh:\n\n${userPrefix}shadow edwin`)
+            if (q.length < 3) return reply('Teks terlalu pendek!')
             let url = await axios.get(`https://edwindefine.herokuapp.com/api/photooxy/shadow?apikey=${ApiKey}&text=${q}`)
             if(!url.data.result) return reply(mess.err.teks)
-            let buffer = await getBuffer(url.data.result)
+            let buffer = await getBuffer2(url.data.result)
             client.sendMessage(from, buffer, image, {
                 caption: `*Berhasil Diproses✔️*`, 
                 quoted: fMsg(2, 'shadow')
@@ -1544,9 +1614,10 @@ Harga Kuota Mahal bos :)
             break
         case 'romantic':{
             if (!q) return reply(`Kirim perintah *${userPrefix}romantic [teks]*\ncontoh:\n\n${userPrefix}romantic edwin`)
+            if (q.length < 3) return reply('Teks terlalu pendek!')
             let url = await axios.get(`https://edwindefine.herokuapp.com/api/photooxy/romantic?apikey=${ApiKey}&text=${q}`)
             if(!url.data.result) return reply(mess.err.teks)
-            let buffer = await getBuffer(url.data.result)
+            let buffer = await getBuffer2(url.data.result)
             client.sendMessage(from, buffer, image, {
                 caption: `*Berhasil Diproses✔️*`, 
                 quoted: fMsg(2, 'romantic')
@@ -1556,9 +1627,10 @@ Harga Kuota Mahal bos :)
             break
         case 'smoke':{
             if (!q) return reply(`Kirim perintah *${userPrefix}smoke [teks]*\ncontoh:\n\n${userPrefix}smoke edwin`)
+            if (q.length < 3) return reply('Teks terlalu pendek!')
             let url = await axios.get(`https://edwindefine.herokuapp.com/api/photooxy/smoke?apikey=${ApiKey}&text=${q}`)
             if(!url.data.result) return reply(mess.err.teks)
-            let buffer = await getBuffer(url.data.result)
+            let buffer = await getBuffer2(url.data.result)
             client.sendMessage(from, buffer, image, {
                 caption: `*Berhasil Diproses✔️*`, 
                 quoted: fMsg(2, 'smoke')
@@ -1568,9 +1640,10 @@ Harga Kuota Mahal bos :)
             break
         case 'naruto':{
             if (!q) return reply(`Kirim perintah *${userPrefix}naruto [teks]*\ncontoh:\n\n${userPrefix}naruto edwin`)
+            if (q.length < 3) return reply('Teks terlalu pendek!')
             let url = await axios.get(`https://edwindefine.herokuapp.com/api/photooxy/naruto?apikey=${ApiKey}&text=${q}`)
             if(!url.data.result) return reply(mess.err.teks)
-            let buffer = await getBuffer(url.data.result)
+            let buffer = await getBuffer2(url.data.result)
             client.sendMessage(from, buffer, image, {
                 caption: `*Berhasil Diproses✔️*`, 
                 quoted: fMsg(2, 'naruto')
@@ -1580,9 +1653,10 @@ Harga Kuota Mahal bos :)
             break
         case 'love':{
             if (!q) return reply(`Kirim perintah *${userPrefix}love [teks]*\ncontoh:\n\n${userPrefix}love edwin`)
+            if (q.length < 3) return reply('Teks terlalu pendek!')
             let url = await axios.get(`https://edwindefine.herokuapp.com/api/photooxy/love-message?apikey=${ApiKey}&text=${q}`)
             if(!url.data.result) return reply(mess.err.teks)
-            let buffer = await getBuffer(url.data.result)
+            let buffer = await getBuffer2(url.data.result)
             client.sendMessage(from, buffer, image, {
                 caption: `*Berhasil Diproses✔️*`, 
                 quoted: fMsg(2, 'love')
@@ -1592,9 +1666,10 @@ Harga Kuota Mahal bos :)
             break
         case 'undergrass':{
             if (!q) return reply(`Kirim perintah *${userPrefix}underGrass [teks]*\ncontoh:\n\n${userPrefix}underGrass edwin`)
+            if (q.length < 3) return reply('Teks terlalu pendek!')
             let url = await axios.get(`https://edwindefine.herokuapp.com/api/photooxy/message-under-grass?apikey=${ApiKey}&text=${q}`)
             if(!url.data.result) return reply(mess.err.teks)
-            let buffer = await getBuffer(url.data.result)
+            let buffer = await getBuffer2(url.data.result)
             client.sendMessage(from, buffer, image, {
                 caption: `*Berhasil Diproses✔️*`, 
                 quoted: fMsg(2, 'underGrass')
@@ -1606,7 +1681,7 @@ Harga Kuota Mahal bos :)
             if (!q) return reply(`Kirim perintah *${userPrefix}doubleHeart [teks]*\ncontoh:\n\n${userPrefix}doubleHeart edwin`)
             let url = await axios.get(`https://edwindefine.herokuapp.com/api/photooxy/double-heart?apikey=${ApiKey}&text=${q}`)
             if(!url.data.result) return reply(mess.err.teks)
-            let buffer = await getBuffer(url.data.result)
+            let buffer = await getBuffer2(url.data.result)
             client.sendMessage(from, buffer, image, {
                 caption: `*Berhasil Diproses✔️*`, 
                 quoted: fMsg(2, 'Double Heart')
@@ -1616,9 +1691,10 @@ Harga Kuota Mahal bos :)
             break
         case 'butterfly':{
             if (!q) return reply(`Kirim perintah *${userPrefix}butterfly [teks]*\ncontoh:\n\n${userPrefix}butterfly edwin`)
+            if (q.length < 3) return reply('Teks terlalu pendek!')
             let url = await axios.get(`https://edwindefine.herokuapp.com/api/photooxy/butterfly?apikey=${ApiKey}&text=${q}`)
             if(!url.data.result) return reply(mess.err.teks)
-            let buffer = await getBuffer(url.data.result)
+            let buffer = await getBuffer2(url.data.result)
             client.sendMessage(from, buffer, image, {
                 caption: `*Berhasil Diproses✔️*`, 
                 quoted: fMsg(2, 'Butterfly')
@@ -1628,9 +1704,10 @@ Harga Kuota Mahal bos :)
             break
         case 'coffecup':{
             if (!q) return reply(`Kirim perintah *${userPrefix}coffeCup [teks]*\ncontoh:\n\n${userPrefix}coffeCup edwin`)
+            if (q.length < 3) return reply('Teks terlalu pendek!')
             let url = await axios.get(`https://edwindefine.herokuapp.com/api/photooxy/coffe-cup?apikey=${ApiKey}&text=${q}`)
             if(!url.data.result) return reply(mess.err.teks)
-            let buffer = await getBuffer(url.data.result)
+            let buffer = await getBuffer2(url.data.result)
             client.sendMessage(from, buffer, image, {
                 caption: `*Berhasil Diproses✔️*`, 
                 quoted: fMsg(2, 'coffe cup')
@@ -1644,7 +1721,7 @@ Harga Kuota Mahal bos :)
             if (!q) return reply('Usernamenya?')
             try{
                 ig.fetchUser(q).then(res => {
-                    if(!res.username) returnreply('Tidak bisa menemukan username tersebut!')
+                    if(!res.username) return reply('Tidak bisa menemukan username tersebut!')
                     let pic = `${res.profile_pic_url_hd}`
                     const content = `*ID* : ${res.profile_id}\n*Username* : ${q}\n*Full Name* : ${res.full_name}\n*Bio* : ${res.biography}\n*Followers* : ${res.following}\n*Following* : ${res.followers}\n*Private* : ${res.is_private}\n*Verified* : ${res.is_verified}\n\n*Link* : https://instagram.com/${q}`
                     sendMediaURL(from, pic, content) 

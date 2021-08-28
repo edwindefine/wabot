@@ -52,7 +52,7 @@ const {
     fKontak
 } = require('./message/fakeReply')
 const msgHandler = require('./message/msgHandler');
-const {getBuffer, start, info, success, close, getGroupAdmins, getGroupMembersId} = require('./lib/function')
+const {start, info, success, close, getBuffer, getBuffer2, pickRandom, getGroupAdmins, getGroupMembersId} = require('./lib/function')
 const {color, bgColor, hexColor} = require('./lib/color')
 const { count } = require('console')
 const {ownerNumber, ownerName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))

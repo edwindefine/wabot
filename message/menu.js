@@ -1,126 +1,153 @@
 const fs = require('fs')
 
 const menu = (pushname, prefix, prefixx, sender, timeWita, isPublic) => {
+const shape = '⬡'
 const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
 
-    //*│*⬡ *Prefix : 「 MULTI PREFIX 」*
-    //*│*⬡ *Tag     :* @${sender.split('@')[0]}
-    //*│*⬡ *Author : ${ownerName}*
+    //*│*${shape} *Prefix : 「 MULTI PREFIX 」*
+    //*│*${shape} *Tag     :* @${sender.split('@')[0]}
+    //*│*${shape} *Author : ${ownerName}*
     return`*╭─❒* 「 ${botName} 」 
 *│*
-*│*⬡ *Hallo kak*
-*│*⬡ *Nama : ${pushname}*
-*│*⬡ *WITA  : ${timeWita}*
-*│*⬡ *Prefix : 「 ${prefixx} 」*
-*│*⬡ *Bot mode : ${isPublic ? "PUBLIC-MODE" : "SELF-MODE"}*
+*│*${shape} *Hallo kak*
+*│*${shape} *Nama : ${pushname}*
+*│*${shape} *WITA  : ${timeWita}*
+*│*${shape} *Prefix : 「 ${prefixx} 」*
+*│*${shape} *Bot mode : ${isPublic ? "PUBLIC-MODE" : "SELF-MODE"}*
 *└───────────────────*
 
 *╭─❒ OWNER*
-*│*⬡ setPrefix *prefix*
-*│*⬡ ${prefix}broadcast *teks*
-*│*⬡ ${prefix}public
-*│*⬡ ${prefix}self
-*│*⬡ ${prefix}setExif *pack|author* [!emoji]
-*│*⬡ ${prefix}setImgPrev
-*│*⬡ ${prefix}removebanchat *groupId*
-*│*⬡ ${prefix}antidel *aktif/nonaktif* [rusak]
-*│*⬡ ${prefix}autoResponse *aktif/nonaktif*
-*│*⬡ ${prefix}addCmd *command*
-*│*⬡ ${prefix}removeCmd *command*
-*│*⬡ ${prefix}listCmd
-*│*⬡ ${prefix}saveVn/saveMusic *name*
-*│*⬡ ${prefix}saveMedia *name*
-*│*⬡ ${prefix}addResponse *key|response*
-*│*⬡ ${prefix}delResponse *key*
-*│*⬡ ${prefix}listResponse
-*│*⬡ ${prefix}getId
-*│*⬡ ${prefix}imgbb
-*│*⬡ ${prefix}bugGc
+*│*${shape} setPrefix *prefix*
+*│*${shape} ${prefix}broadcast *teks*
+*│*${shape} ${prefix}public
+*│*${shape} ${prefix}self
+*│*${shape} ${prefix}setExif *pack|author* [!emoji]
+*│*${shape} ${prefix}setPrevImg
+*│*${shape} ${prefix}setFakeImg
+*│*${shape} ${prefix}removebanchat *groupId*
+*│*${shape} ${prefix}antidel *aktif/nonaktif* [rusak]
+*│*${shape} ${prefix}autoResponse *aktif/nonaktif*
+*│*${shape} ${prefix}addCmd *command*
+*│*${shape} ${prefix}removeCmd *command*
+*│*${shape} ${prefix}listCmd
+*│*${shape} ${prefix}saveVn/saveMusic *name*
+*│*${shape} ${prefix}saveMedia *name*
+*│*${shape} ${prefix}addResponse *key|response*
+*│*${shape} ${prefix}delResponse *key*
+*│*${shape} ${prefix}listResponse
+*│*${shape} ${prefix}getId
+*│*${shape} ${prefix}imgbb
+*│*${shape} ${prefix}bugGc
 *│*
 *├❒ FAKE TEST*
-*│*⬡ ${prefix}freply *query*
-*│*⬡ ${prefix}listFreply
-*│*⬡ ${prefix}fakeUrl
-*│*⬡ ${prefix}fakeInvite
-*│*⬡ ${prefix}fakeLocation
+*│*${shape} ${prefix}freply *query*
+*│*${shape} ${prefix}listFreply
+*│*${shape} ${prefix}fakeUrl
+*│*${shape} ${prefix}fakeInvite
+*│*${shape} ${prefix}fakeLocation
 *│*
 *├❒ STORAGE*
-*│*⬡ ${prefix}sendVn *query*
-*│*⬡ ${prefix}sendMusic *query*
-*│*⬡ ${prefix}listVn/listMusic
-*│*⬡ ${prefix}sendMedia *query*
-*│*⬡ ${prefix}listMedia
+*│*${shape} ${prefix}sendVn *query*
+*│*${shape} ${prefix}sendMusic *query*
+*│*${shape} ${prefix}listVn/listMusic
+*│*${shape} ${prefix}sendMedia *query*
+*│*${shape} ${prefix}listMedia
 *│*
 *├❒ GROUP MENU*
-*│*⬡ ${prefix}antilik *aktif/nonaktif*
-*│*⬡ ${prefix}add *nomor*
-*│*⬡ ${prefix}kick *mention*
-*│*⬡ ${prefix}promote *mention*
-*│*⬡ ${prefix}demote *mention*
-*│*⬡ ${prefix}banchat *aktif/nonaktif*
-*│*⬡ ${prefix}listBanchat
-*│*⬡ ${prefix}linkGroup
-*│*⬡ ${prefix}join *linkGroup*
-*│*⬡ ${prefix}hidetag *teks*
-*│*⬡ ${prefix}stag
-*│*⬡ ${prefix}groupPic
-*│*⬡ ${prefix}gPic *tag*
+*│*${shape} ${prefix}antilik *aktif/nonaktif*
+*│*${shape} ${prefix}add *nomor*
+*│*${shape} ${prefix}kick *mention*
+*│*${shape} ${prefix}promote *mention*
+*│*${shape} ${prefix}demote *mention*
+*│*${shape} ${prefix}banchat *aktif/nonaktif*
+*│*${shape} ${prefix}listBanchat
+*│*${shape} ${prefix}linkGroup
+*│*${shape} ${prefix}join *linkGroup*
+*│*${shape} ${prefix}hidetag *teks*
+*│*${shape} ${prefix}stag
+*│*${shape} ${prefix}groupPic
+*│*${shape} ${prefix}gPic *tag*
 *│*
 *├❒ STICKER*
-*│*⬡ ${prefix}sticker
-*│*⬡ ${prefix}swm *pack | author*
-*│*⬡ ${prefix}take *pack | author*
-*│*⬡ ${prefix}attp
-*│*
-*├❒ ANIME*
-*│*⬡ ${prefix}wallAnime
-*│*⬡ ${prefix}chara
+*│*${shape} ${prefix}sticker
+*│*${shape} ${prefix}swm *pack | author*
+*│*${shape} ${prefix}take *pack | author*
+*│*${shape} ${prefix}attp
 *│*
 *├❒ CONVERTER*
-*│*⬡ ${prefix}nulis *teks*
-*│*⬡ ${prefix}tts *bahasa* *teks*
-*│*⬡ ${prefix}imgThumb
-*│*⬡ ${prefix}toMedia
-*│*⬡ ${prefix}tomp3
+*│*${shape} ${prefix}nulis *teks*
+*│*${shape} ${prefix}tts *bahasa* *teks*
+*│*${shape} ${prefix}toMedia
+*│*${shape} ${prefix}toMp3
+*│*${shape} ${prefix}imgThumb
+*│*
+*├❒ ANIME*
+*│*${shape} ${prefix}chara *query*
+*│*${shape} ${prefix}wallAnime
+*│*${shape} ${prefix}neko
+*│*${shape} ${prefix}waifu
+*│*${shape} ${prefix}avatar
+*│*${shape} ${prefix}holo
+*│*${shape} ${prefix}gecg
+*│*
+*├❒ ANIME LINK*
+*│*${shape} ${prefix}smug
+*│*${shape} ${prefix}hug
+*│*${shape} ${prefix}slap
+*│*${shape} ${prefix}feed
+*│*${shape} ${prefix}poke
+*│*${shape} ${prefix}pat
+*│*${shape} ${prefix}tickle
+*│*${shape} ${prefix}cuddle
+*│*
+*├❒ NSWF(18+)*
+*│*${shape} ${prefix}hentai
+*│*${shape} ${prefix}yuri
+*│*${shape} ${prefix}cum
+*│*${shape} ${prefix}solo
+*│*${shape} ${prefix}boobs
+*│*${shape} ${prefix}anal
+*│*${shape} ${prefix}hololewd
+*│*${shape} ${prefix}lewd
 *│*
 *├❒ KERANG MENU*
-*│*⬡ ${prefix}apakah *teks*
-*│*⬡ ${prefix}kapankah *teks*
-*│*⬡ ${prefix}rate *teks*
-*│*⬡ ${prefix}jadian *teks*
+*│*${shape} ${prefix}apakah *teks*
+*│*${shape} ${prefix}kapankah *teks*
+*│*${shape} ${prefix}rate *teks*
+*│*${shape} ${prefix}jadian *teks*
 *│*
 *├❒ TEXT MAKER*
-*│*⬡ ${prefix}pornhub *teks1|teks2*
-*│*⬡ ${prefix}logowolf *teks1|teks2*
-*│*⬡ ${prefix}logowolf2 *teks1|teks2*
-*│*⬡ ${prefix}naturalLeaves *teks*
-*│*⬡ ${prefix}blackpink *teks*
-*│*⬡ ${prefix}dropwater *teks*
-*│*⬡ ${prefix}christmas *teks*
-*│*⬡ ${prefix}3dgradient *teks*
-*│*⬡ ${prefix}shadow *teks*
-*│*⬡ ${prefix}romantic *teks*
-*│*⬡ ${prefix}smoke *teks*
-*│*⬡ ${prefix}naruto *teks*
-*│*⬡ ${prefix}love *teks*
-*│*⬡ ${prefix}underGrass *teks*
-*│*⬡ ${prefix}doubleHeart *teks*
-*│*⬡ ${prefix}butterfly *teks*
-*│*⬡ ${prefix}coffeCup *teks*
+*│*${shape} ${prefix}pornhub *teks1|teks2*
+*│*${shape} ${prefix}logowolf *teks1|teks2*
+*│*${shape} ${prefix}logowolf2 *teks1|teks2*
+*│*${shape} ${prefix}naturalLeaves *teks*
+*│*${shape} ${prefix}blackpink *teks*
+*│*${shape} ${prefix}dropwater *teks*
+*│*${shape} ${prefix}christmas *teks*
+*│*${shape} ${prefix}3dgradient *teks*
+*│*${shape} ${prefix}shadow *teks*
+*│*${shape} ${prefix}romantic *teks*
+*│*${shape} ${prefix}smoke *teks*
+*│*${shape} ${prefix}naruto *teks*
+*│*${shape} ${prefix}love *teks*
+*│*${shape} ${prefix}underGrass *teks*
+*│*${shape} ${prefix}doubleHeart *teks*
+*│*${shape} ${prefix}butterfly *teks*
+*│*${shape} ${prefix}coffeCup *teks*
 *│*
 *├❒ SEARCH*
-*│*⬡ ${prefix}igstalk *username*
+*│*${shape} ${prefix}igstalk *username*
 *│*
 *├❒ DOWNLOADER*
-*│*⬡ ${prefix}ytmp4 *link*
-*│*⬡ ${prefix}ytmp3 *link*
-*│*⬡ ${prefix}ig *link*
-*│*⬡ ${prefix}igStory *username*
-*│*⬡ ${prefix}tiktok *link*
-*│*⬡ ${prefix}pinterest *query*
+*│*${shape} ${prefix}ytmp4 *link*
+*│*${shape} ${prefix}ytmp3 *link*
+*│*${shape} ${prefix}ig *link*
+*│*${shape} ${prefix}igStory *username*
+*│*${shape} ${prefix}tiktok *link*
+*│*${shape} ${prefix}pinterest *query*
 *│*
 *├❒ MORE*
-*│*⬡ ${prefix}lmp (list message processed)
+*│*${shape} ${prefix}lmp (list message processed)
 *│*
 *╘═══ 《 *By ${ownerName}* 》 ═══*
 

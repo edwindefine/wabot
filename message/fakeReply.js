@@ -1,6 +1,8 @@
 const fs = require('fs')
 
-const miniThumbnail = fs.readFileSync('./assets/media/karma_akabane_mini.jpg')
+let dataBot = JSON.parse(fs.readFileSync('./database/data_bot.json'))
+
+const miniThumbnail = fs.readFileSync(dataBot.fakeImg)
 const {ownerNumber, ownerName, botName, mediaUrl} = JSON.parse(fs.readFileSync('./config.json'))
 
 const keyType = [
